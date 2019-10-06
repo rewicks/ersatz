@@ -13,16 +13,17 @@ import time
 '''
 class EvalModel():
     
-    def __init__(self, model_path, corpus_path):
+    def __init__(self, model_path, corpus_path, tokenizer):
         self.model, _, _ = self.load_model(model_path)
-        self.dictionary = self.load_corpus(corpus_path)    
+        self.dictionary = self.model.dictionary
+        self.tokenzier = tokenizer
         self.context = ''   # keeps track of the words that have thus far been given as input to the model
 
     def load_model(self, model_path):
         with open(model_path, 'rb') as f:
             return torch.load(f, map_location=torch.device('cpu'))
 
-    def load_corpus(self, corpus_path):
+    def load_corpus(self, test_data):
         fn = 'corpus.{}.data'.format(hashlib.md5(corpus_path.encode()).hexdigest())
         return torch.load(fn).dictionary    
 
@@ -65,7 +66,7 @@ class EvalModel():
         def next_token():
             with open(test_data, 'r') as f:
                 for line in f:
-                    words = line.split() + ['<eos>']
+                    words = self.tokenizer(line) + ['<eos>']
                     for w in words:
                         yield w
         

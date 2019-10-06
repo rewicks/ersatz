@@ -16,7 +16,7 @@ def encode_sentence_piece(file_path, model_path, output_path):
     if not sp.Load(model_path):
         raise Error("model was not successfully loaded")
 
-    sp.SetEncodeExtraOptions('eos')    
+    #sp.SetEncodeExtraOptions('eos')
 
     output = open(output_path, 'w')
 
@@ -31,7 +31,6 @@ def encode_sentence_piece(file_path, model_path, output_path):
 def prep_files(directory, train_path, test_path):
     src = open(train_path, 'r').read()
     lines = src.split('\n')
-    #os.mkdir(directory)
     train = open(os.path.join(directory, 'train.txt'), 'w')
     valid = open(os.path.join(directory, 'valid.txt'), 'w')
     train.write('\n'.join(lines[:(len(lines)//2)]))

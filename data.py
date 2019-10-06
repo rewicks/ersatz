@@ -24,33 +24,56 @@ class Dictionary(object):
         return len(self.idx2word)
 
 
-class Corpus(object):
-    def __init__(self, path):
+class TrainingCorpus(object):
+    def __init__(self, training_path):
         self.dictionary = Dictionary()
-        self.train = self.tokenize(os.path.join(path, 'train.txt'))
-        self.valid = self.tokenize(os.path.join(path, 'valid.txt'))
-        self.test = self.tokenize(os.path.join(path, 'test.txt'))
+        self.train, self.valid = self.tokenize(training_path)
 
-    def tokenize(self, path):
+    def tokenize(self, path, tokenizer, train_percent=0.5):
         """Tokenizes a text file."""
         assert os.path.exists(path)
-        # Add words to the dictionary
+
+        train_percent = round(train_percent, 2)
+
+        # Get length of file
+        sentences = 0
         with open(path, 'r') as f:
-            tokens = 0
             for line in f:
-                words = line.split() + ['<eos>']
-                tokens += len(words)
+                sentences += 1
+
+        training_sentences = int(sentences*train_percent)
+        # Add words to the dictionary
+        counter = 0
+        training_tokens = 0
+        validation_tokens = 0
+        with open(path, 'r') as f:
+            for line in f:
+                words = tokenizer.encode(line) + ['<eos>']
+                if counter <= training_sentences:
+                    training_tokens += len(words)
+                else:
+                    validation_tokens += len(words)
                 for word in words:
                     self.dictionary.add_word(word)
 
         # Tokenize file content
         with open(path, 'r') as f:
-            ids = torch.LongTensor(tokens)
-            token = 0
-            for line in f:
-                words = line.split() + ['<eos>']
-                for word in words:
-                    ids[token] = self.dictionary.word2idx[word]
-                    token += 1
+            training_ids = torch.LongTensor(training_tokens)
+            validation_ids = torch.LongTensor(validation_tokens)
 
-        return ids
+            token = 0
+            counter = 0
+            for line in f:
+                words = tokenizer.encode(line) + ['<eos>']
+                for word in words:
+                    if counter <= training_sentences:
+                        training_ids[token] = self.dictionary.word2idx[word]
+                    else:
+                        validation_ids[token] = self.dictionary.word2idx[word]
+                    token += 1
+                    if counter == training_sentences:
+                        tokens = 0
+                    counter += 1
+
+        return training_ids, validation_ids
+

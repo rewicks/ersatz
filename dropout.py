@@ -1,6 +1,35 @@
 import torch
-from torch.nn import Parameter
-from functools import wraps
+
+def embedded_dropout(embed, words, dropout=0.1, scale=None):
+  if dropout:
+    mask = embed.weight.data.new().resize_((embed.weight.size(0), 1)).bernoulli_(1 - dropout).expand_as(embed.weight) / (1 - dropout)
+    masked_embed_weight = mask * embed.weight
+  else:
+    masked_embed_weight = embed.weight
+  if scale:
+    masked_embed_weight = scale.expand_as(masked_embed_weight) * masked_embed_weight
+
+  padding_idx = embed.padding_idx
+  if padding_idx is None:
+      padding_idx = -1
+
+  X = torch.nn.functional.embedding(words, masked_embed_weight,
+    padding_idx, embed.max_norm, embed.norm_type,
+    embed.scale_grad_by_freq, embed.sparse
+  )
+  return X
+
+class LockedDropout(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x, dropout=0.5):
+        if not self.training or not dropout:
+            return x
+        m = x.data.new(1, x.size(1), x.size(2)).bernoulli_(1 - dropout)
+        mask = torch.autograd.Variable(m, requires_grad=False) / (1 - dropout)
+        mask = mask.expand_as(x)
+        return mask * x
 
 class WeightDrop(torch.nn.Module):
     def __init__(self, module, weights, dropout=0, variational=False):
@@ -27,7 +56,7 @@ class WeightDrop(torch.nn.Module):
             print('Applying weight drop of {} to {}'.format(self.dropout, name_w))
             w = getattr(self.module, name_w)
             del self.module._parameters[name_w]
-            self.module.register_parameter(name_w + '_raw', Parameter(w.data))
+            self.module.register_parameter(name_w + '_raw', torch.nn.Parameter(w.data))
 
     def _setweights(self):
         for name_w in self.weights:
@@ -45,55 +74,3 @@ class WeightDrop(torch.nn.Module):
     def forward(self, *args):
         self._setweights()
         return self.module.forward(*args)
-
-if __name__ == '__main__':
-    import torch
-    from weight_drop import WeightDrop
-
-    # Input is (seq, batch, input)
-    x = torch.autograd.Variable(torch.randn(2, 1, 10)).cuda()
-    h0 = None
-
-    ###
-
-    print('Testing WeightDrop')
-    print('=-=-=-=-=-=-=-=-=-=')
-
-    ###
-
-    print('Testing WeightDrop with Linear')
-
-    lin = WeightDrop(torch.nn.Linear(10, 10), ['weight'], dropout=0.9)
-    lin.cuda()
-    run1 = [x.sum() for x in lin(x).data]
-    run2 = [x.sum() for x in lin(x).data]
-
-    print('All items should be different')
-    print('Run 1:', run1)
-    print('Run 2:', run2)
-
-    assert run1[0] != run2[0]
-    assert run1[1] != run2[1]
-
-    print('---')
-
-    ###
-
-    print('Testing WeightDrop with LSTM')
-
-    wdrnn = WeightDrop(torch.nn.LSTM(10, 10), ['weight_hh_l0'], dropout=0.9)
-    wdrnn.cuda()
-
-    run1 = [x.sum() for x in wdrnn(x, h0)[0].data]
-    run2 = [x.sum() for x in wdrnn(x, h0)[0].data]
-
-    print('First timesteps should be equal, all others should differ')
-    print('Run 1:', run1)
-    print('Run 2:', run2)
-
-    # First time step, not influenced by hidden to hidden weights, should be equal
-    assert run1[0] == run2[0]
-    # Second step should not
-    assert run1[1] != run2[1]
-
-    print('---')

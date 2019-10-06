@@ -1,2 +1,3 @@
 *.pt
+europarl-v9/
 __pycache__/

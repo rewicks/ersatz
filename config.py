@@ -30,26 +30,36 @@ class ModelConfiguration():
         self.tokenizer_model_path = conf["tokenizer_model_path"] if "tokenizer_model_path" in conf else None
 
         # All the parameters to train the AWD-LSTM language model
-        self.epochs = conf["epochs"] if "epochs" in conf else None
-        self.nlayers = conf["nlayers"] if "nlayers" in conf else None
-        self.emsize = conf["emsize"] if "emsize" in conf else None
-        self.nhid = conf["nhid"] if "nhid" in conf else None
-        self.alpha = conf["alpha"] if "alpha" in conf else None
-        self.beta = conf["beta"] if "beta" in conf else None
-        self.dropoute = conf["dropoute"] if "dropoute" in conf else None
-        self.dropouth = conf["dropouth"] if "dropouth" in conf else None
-        self.dropouti = conf["dropouti"] if "dropouti" in conf else None
-        self.dropout = conf["dropout"] if "dropout" in conf else None
-        self.wdrop = conf["wdrop"] if "wdrop" in conf else None
-        self.wdecay = conf["wdecay"] if "wdecay" in conf else None
-        self.bptt = conf["bptt"] if "bptt" in conf else None
-        self.batch_size = conf["batch_size"] if "batch_size" in conf else None
+        self.epochs = int(conf["epochs"]) if "epochs" in conf else None
+        self.nlayers = int(conf["nlayers"]) if "nlayers" in conf else None
+        self.emsize = int(conf["emsize"]) if "emsize" in conf else None
+        self.nhid = int(conf["nhid"]) if "nhid" in conf else None
+        self.alpha = float(conf["alpha"]) if "alpha" in conf else None
+        self.beta = float(conf["beta"]) if "beta" in conf else None
+        self.dropoute = float(conf["dropoute"]) if "dropoute" in conf else None
+        self.dropouth = float(conf["dropouth"]) if "dropouth" in conf else None
+        self.dropouti = float(conf["dropouti"]) if "dropouti" in conf else None
+        self.dropout = float(conf["dropout"]) if "dropout" in conf else None
+        self.wdrop = float(conf["wdrop"]) if "wdrop" in conf else None
+        self.wdecay = float(conf["wdecay"]) if "wdecay" in conf else None
+        self.bptt = int(conf["bptt"]) if "bptt" in conf else None
+        self.batch_size = int(conf["batch_size"]) if "batch_size" in conf else None
         self.optimizer = conf["optimizer"] if "optimizer" in conf else None
-        self.lr = conf["lr"] if "lr" in conf else None
+        self.lr = float(conf["lr"]) if "lr" in conf else None
         self.save = conf["save"] if "save" in conf else None    
-        self.when = conf["when"] if "when" in conf else None
+        self.when = int(conf["when"]) if "when" in conf else None
         self.model = conf["model"] if "model" in conf else None
         
+        if "resume" in conf:
+            self.resume = conf["resume"]
+        else:
+            self.resume = False      
+ 
+        if "cuda" in conf:
+            self.cuda = conf["cuda"]
+        else:
+            self.cuda = False
+
         if "tied" in conf and conf["tied"] == "True":
             self.tied = True
         else:

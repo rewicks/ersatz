@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 import data
-import model
+import model as md
 
 from utils import batchify, get_batch, repackage_hidden
 import os
@@ -28,8 +28,10 @@ def model_load(fn):
     global model, criterion, optimizer
     with open(fn, 'rb') as f:
         model, criterion, optimizer = torch.load(f)
+
+
 def load_corpus(file_path, tokenizer_path):
-    fn = os.path.join(PROCESSED_CORPUS_PATH, f'corpus.{hashlib.md5(file_path.encode()).hexdigest()}.{tokenizer_path}.data')
+    fn = os.path.join(PROCESSED_CORPUS_PATH, f'corpus.{hashlib.md5(file_path.encode()).hexdigest()}.{tokenizer_path.split("/")[-1][:-6]}.data')
     if os.path.exists(fn):
         print('Loading cached dataset...')
         corpus = torch.load(fn)
@@ -47,12 +49,12 @@ def build(args):
 
     corpus = load_corpus(args.train_path, args.tokenizer_model_path)
     criterion = None
-
-    model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, corpus.dictionary, args.dropout, args.dropouth, args.dropouti, args.dropoute, args.wdrop, args.tied)
+    ntokens = len(corpus.dictionary)
+    model = md.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, corpus.dictionary, args.dropout, args.dropouth, args.dropouti, args.dropoute, args.wdrop, args.tied)
 
 
     ###
-    if args.resume:
+    if  args.resume:
         print('Resuming model ...')
         model_load(args.resume)
         optimizer.param_groups[0]['lr'] = args.lr
@@ -104,7 +106,7 @@ def evaluate(data_source, batch_size=10):
     return total_loss.item() / len(data_source)
 
 
-def train(corpus, train_data, params, epoch):
+def train(args, model, optimizer, corpus, train_data, params, epoch):
     # Turn on training mode which enables dropout.
     if args.model == 'QRNN': model.reset()
     total_loss = 0
@@ -180,7 +182,7 @@ def main(args):
             optimizer = torch.optim.Adam(params, lr=args.lr, weight_decay=args.wdecay)
         for epoch in range(1, args.epochs+1):
             epoch_start_time = time.time()
-            train(corpus, train_data, params, epoch)
+            train(args, model, optimizer,  corpus, train_data, params, epoch)
             if 't0' in optimizer.param_groups[0]:
                 tmp = {}
                 for prm in model.parameters():
@@ -219,7 +221,7 @@ def main(args):
                     print('Switching to ASGD')
                     optimizer = torch.optim.ASGD(model.parameters(), lr=args.lr, t0=0, lambd=0., weight_decay=args.wdecay)
 
-                if epoch in args.when:
+                if epoch == args.when:
                     print('Saving model before learning rate decreased')
                     model_save('{}.e{}'.format(args.save, epoch))
                     print('Dividing learning rate by 10')

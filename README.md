@@ -5,6 +5,21 @@ This repository uses the AWD-LSTM language model as a default; thus, the reposit
 + [An Analysis of Neural Language Modeling at Multiple Scales](https://arxiv.org/abs/1803.08240)
 This code was originally forked from the [PyTorch word level language modeling example](https://github.com/pytorch/examples/tree/master/word_language_model).
 
+##Training:
+
+Currently, only configuration files are supported. Default configuration files are included in config-files.
+
+#### SentencePiece Training
+
+```buildoutcfg
+python ersatz.py train spm -c <config_file_path>
+```
+
+#### AWD-LSTM Training
+
+```buildoutcfg
+python ersatz.py train awd -c <config_file_path>
+```
 
 ## Software Requirements
 

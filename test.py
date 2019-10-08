@@ -23,7 +23,7 @@ class EvalModel():
         with open(model_path, 'rb') as f:
             return torch.load(f, map_location=torch.device('cpu'))
 
-    def load_corpus(self, test_data):
+    def load_corpus(self, corpus_path):
         fn = 'corpus.{}.data'.format(hashlib.md5(corpus_path.encode()).hexdigest())
         return torch.load(fn).dictionary    
 

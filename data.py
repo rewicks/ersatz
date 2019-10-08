@@ -55,6 +55,7 @@ class TrainingCorpus(object):
                     training_tokens += len(words)
                 else:
                     validation_tokens += len(words)
+                counter += 1
                 for word in words:
                     self.dictionary.add_word(word)
 

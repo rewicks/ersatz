@@ -3,14 +3,7 @@ import json
 
 class TokenConfiguration():
     def __init__(self, conf):
-        # Whether or not the tokenization will be trained on this run
-        if conf["execute"] == "True":
-            self.execute = True
-        else:
-            self.execute = False
-        
-        conf = conf["configuration"]
-        
+        conf = json.loads(conf) 
         # All the parameters for the SentencePiece tokenization training
         self.file_path = conf["file_path"] if "file_path" in conf else None
         self.model_prefix = conf["model_path"] if "model_path" in conf else None
@@ -20,7 +13,7 @@ class TokenConfiguration():
     
     def __str__(self):
         
-        printout = "\n-------------------------------------------------\n"
+        printout = "\n-----------------------------------------------------------------------------------------------------\n"
         printout += "\tPath of training data file:      %s\n" % str(self.file_path)
         printout += "\tPrefix of the model file:        %s\n" % str(self.model_prefix)
         printout += "\tVocabulary Size:                 %s\n" % str(self.vocab_size)
@@ -30,31 +23,11 @@ class TokenConfiguration():
  
 class ModelConfiguration():
     def __init__(self, conf):
-        # Whether or not the language model will be trained on this run
-        if conf["execute"] == 'True':
-            self.execute = True
-        else:
-            self.execute = False
+        conf = json.loads(conf)
         
-        conf = conf["configuration"]
-
         # Local location of the awd-lstm project       
-        self.awd_path = conf["awd_path"] if "awd_path" in conf else "~/rwicks/awd-lstm-lm"
- 
-        # All the parameters to encode the file for training the language model
-        # There must already exist a valid trained SentencePiece model
-        if "tokenize" in conf:
-            if conf["tokenize"] == 'True':
-                self.tokenize = True
-            else:
-                self.tokenize = False
-        else:
-            self.tokenize = False
-        self.file_path = conf["file_path"] if "file_path" in conf else None
-        self.model_path = conf["model_path"] if "model_path" in conf else None
-        self.output_path = conf["output_path"] if "output_path" in conf else None
-        self.train = conf["train"] if "train" in conf else None
-        self.test = conf["test"] if "test" in conf else None        
+        self.train_path = conf["train_path"] if "train_path" in conf else None
+        self.tokenizer_model_path = conf["tokenizer_model_path"] if "tokenizer_model_path" in conf else None
 
         # All the parameters to train the AWD-LSTM language model
         self.epochs = conf["epochs"] if "epochs" in conf else None
@@ -73,17 +46,14 @@ class ModelConfiguration():
         self.batch_size = conf["batch_size"] if "batch_size" in conf else None
         self.optimizer = conf["optimizer"] if "optimizer" in conf else None
         self.lr = conf["lr"] if "lr" in conf else None
-        self.data = conf["train"] if "data" in conf else self.output_path
         self.save = conf["save"] if "save" in conf else None    
         self.when = conf["when"] if "when" in conf else None
         self.model = conf["model"] if "model" in conf else None
 
     def __str__(self):
         printout = "\n--------------------------------------------------------------------------------------------------------\n"
-        printout += "\tTokenization:                                | %s\n" % str(self.tokenize)
-        printout += "\tPath of file to tokenize:                    | %s\n" % str(self.file_path)
-        printout += "\tPath of model file:                          | %s\n" % str(self.model_path)
-        printout += "\tPrefix of location to save tokenized text:   | %s\n" % str(self.output_path)
+        printout += "\tPath of training file:                    | %s\n" % str(self.train_path)
+        printout += "\tPath of model file:                          | %s\n" % str(self.tokenizer_model_path)
         printout += "\tEpochs:                                      | %s\n" % str(self.epochs)
         printout += "\tNLayers:                                     | %s\n" % str(self.nlayers)
         printout += "\tEmsize:                                      | %s\n" % str(self.emsize)
@@ -100,7 +70,6 @@ class ModelConfiguration():
         printout += "\tBatch Size:                                  | %s\n" % str(self.batch_size)
         printout += "\tOptimizer:                                   | %s\n" % str(self.optimizer)
         printout += "\tLR:                                          | %s\n" % str(self.lr)
-        printout += "\tLocation of pre-processed text:              | %s\n" % str(self.data)
         printout += "\tPath of location to save model:              | %s\n" % str(self.save)
         printout += "\tWhen:                                        | %s\n" % str(self.when)
         printout += "\tModel Type:                                  | %s\n" % str(self.model)

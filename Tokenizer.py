@@ -18,4 +18,4 @@ class SPM(Tokenizer):
             Error("model was not successfully loaded")
 
     def encode(self, string):
-        return spm.EncodeAsPieces(string)
+        return self.model.EncodeAsPieces(string)

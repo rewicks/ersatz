@@ -2,6 +2,7 @@ import sentencepiece as spm
 import argparse
 import subprocess, time, os
 import shutil
+import awd
 
 class Error(Exception):
     pass
@@ -37,28 +38,8 @@ def prep_files(directory, train_path, test_path):
     valid.write('\n'.join(lines[(len(lines)//2):]))
     shutil.copyfile(test_path, os.path.join(directory, 'test.txt'))
 
-def train_language_model(configuration):
-    print(configuration.tokenize)
-    if configuration.tokenize:
-        print(configuration.tokenize)
-        print("Preprocessing and tokenizing the text file: ")
-        encode_sentence_piece(configuration.file_path, configuration.model_path, configuration.output_path)
-        encode_sentence_piece('/exp/rwicks/ersatz/data/europarl/europarl-v9-test.en', configuration.model_path, '/exp/rwicks/ersatz/data/europarl/europarl-v9-test.encoded')
-    
-    prep_files('/exp/rwicks/ersatz/data/europarl/europarl-v9/', '/exp/rwicks/ersatz/data/europarl/europarl-v9-train.encoded', '/exp/rwicks/ersatz/data/europarl/europarl-v9-test.encoded')
+def train_language_model(args):
 
-    params = "python -u %s/main.py" % configuration.awd_path
-
-    for var in vars(configuration):
-        if var not in ['train', 'train_data', 'execute', 'awd_path', 'tokenize', 'model_path', 'output_path', 'file_path']:
-            params += " --%s %s" % (var, vars(configuration)[var]) if vars(configuration)[var] is not None else ""
-    
-    print(params) 
-    start = time.time()
     print("Calling AWD-LSTM training")
-    subprocess.call(params, shell=True)   
-    end = time.time()
-    print(start)
-    print(end)
-    print(end-start)
-
+    awd.main(args)
+    

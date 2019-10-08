@@ -27,11 +27,11 @@ class Dictionary(object):
 class TrainingCorpus(object):
     def __init__(self, training_path, tokenizer_path):
         self.dictionary = Dictionary()
-        self.tokenizer = Tokenizer.SPM(tokenizer_path)
-        self.train, self.valid = self.tokenize(training_path)
+        tokenizer = Tokenizer.SPM(tokenizer_path)
+        self.train, self.valid = self.tokenize(training_path, tokenizer)
         
 
-    def tokenize(self, path, train_percent=0.5):
+    def tokenize(self, path, tokenizer, train_percent=0.5):
         """Tokenizes a text file."""
         assert os.path.exists(path)
 
@@ -50,7 +50,7 @@ class TrainingCorpus(object):
         validation_tokens = 0
         with open(path, 'r') as f:
             for line in f:
-                words = self.tokenizer.encode(line) + ['<eos>']
+                words = tokenizer.encode(line) + ['<eos>']
                 if counter <= training_sentences:
                     training_tokens += len(words)
                 else:
@@ -67,15 +67,18 @@ class TrainingCorpus(object):
             token = 0
             counter = 0
             for line in f:
-                words = self.tokenizer.encode(line) + ['<eos>']
-                for word in words:
-                    if counter <= training_sentences:
+                words = tokenizer.encode(line) + ['<eos>']
+                if counter <= training_sentences:
+                    for word in words:
                         training_ids[token] = self.dictionary.word2idx[word]
-                    else:
+                        token += 1
+                    counter += 1
+                    if counter > training_sentences:
+                        token = 0
+                else:
+                    for word in words:
                         validation_ids[token] = self.dictionary.word2idx[word]
-                    token += 1
-                    if counter == training_sentences:
-                        tokens = 0
+                        token += 1
                     counter += 1
 
         return training_ids, validation_ids

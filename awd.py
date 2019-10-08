@@ -29,7 +29,7 @@ def model_load(fn):
     with open(fn, 'rb') as f:
         model, criterion, optimizer = torch.load(f)
 def load_corpus(file_path, tokenizer_path):
-    fn = os.path.join(PROCESSED_CORPUS_PATH, 'corpus.{}.data'.format(hashlib.md5(file_path.encode()).hexdigest()))
+    fn = os.path.join(PROCESSED_CORPUS_PATH, f'corpus.{hashlib.md5(file_path.encode()).hexdigest()}.{tokenizer_path}.data')
     if os.path.exists(fn):
         print('Loading cached dataset...')
         corpus = torch.load(fn)

@@ -49,6 +49,11 @@ class ModelConfiguration():
         self.save = conf["save"] if "save" in conf else None    
         self.when = conf["when"] if "when" in conf else None
         self.model = conf["model"] if "model" in conf else None
+        
+        if "tied" in conf and conf["tied"] == "True":
+            self.tied = True
+        else:
+            self.tied = False
 
     def __str__(self):
         printout = "\n--------------------------------------------------------------------------------------------------------\n"

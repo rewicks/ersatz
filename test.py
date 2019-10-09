@@ -3,7 +3,9 @@ import argparse
 import hashlib
 from utils import repackage_hidden
 import time
-
+import Tokenizer
+import glob
+from pathlib import Path
 
 '''
     Evalutation Model allows for testing of sentence segmentation
@@ -11,13 +13,21 @@ import time
     your own model
 
 '''
+
+LOGS = '/home/hltcoe/rwicks/ersatz/testing-logs/'
+
 class EvalModel():
     
     def __init__(self, model_path, corpus_path, tokenizer):
         self.model, _, _ = self.load_model(model_path)
+        if torch.cuda.is_available():
+            self.model = self.model.cuda()    
+    
         self.dictionary = self.model.dictionary
-        self.tokenzier = tokenizer
+        self.tokenizer = Tokenizer.SPM(tokenizer)
         self.context = ''   # keeps track of the words that have thus far been given as input to the model
+        affix = model_path.split('/')[-1].split('.')[0] + '.txt'
+        self.log = open(os.path.join(LOGS, affix), 'w')
 
     def load_model(self, model_path):
         with open(model_path, 'rb') as f:
@@ -32,6 +42,8 @@ class EvalModel():
     def batchify(self, data):
         data = data.narrow(0, 0, data.size(0))
         data = data.view(1, -1).t().contiguous()
+        if torch.cuda.is_available():
+            data = data.cuda()
         return data
 
     # resets the model, and gives it the next word to initialize
@@ -63,10 +75,11 @@ class EvalModel():
         # iterates over a test file
         # must be in the format of one sentence per line
         # with no extra tags
+    
         def next_token():
             with open(test_data, 'r') as f:
                 for line in f:
-                    words = self.tokenizer(line) + ['<eos>']
+                    words = self.tokenizer.encode(line) + ['<eos>']
                     for w in words:
                         yield w
         
@@ -79,14 +92,13 @@ class EvalModel():
         start = time.time()
         for observed_word in all_tokens:
             predicted_word = self.dictionary.idx2word[self.model.decoder(self.output).softmax(1).argmax()]
-            
+ 
+            self.log.write(f'{counter}: {self.context} [{observed_word}]: {predicted_word}\n')
+
             if predicted_word == '<eos>':
                 self.reset_model(observed_word)
             elif observed_word != '<eos>':
                 self.step(observed_word)
-
-            #print(f'{counter} at output: {predicted_word} vs actual: {obs}')
-            print(f'{counter}: {self.context} [{observed_word}]: {predicted_word}')
 
             counter += 1
             
@@ -101,34 +113,59 @@ class EvalModel():
  
         return results
 
-    def compile_results(self, results):
-        matrix = [[0,0][0,0]]
-        for obs in results:
-            if obs == '<eos>':
-                for pred in results[obs]:
-                    if pred == '<eos>':
-                        matrix[0][0] += 1
-                    else:
-                        matrix[0][1] += 1
+def compile_results(self, results):
+    matrix = [[0,0][0,0]]
+    for obs in results:
+        if obs == '<eos>':
+            for pred in results[obs]:
+                if pred == '<eos>':
+                    matrix[0][0] += 1
+                else:
+                    matrix[0][1] += 1
+        else:
+            for pred in results[obs]:
+                if pred == '<eos>':
+                    matrix[1][0] += 1
+                else:
+                    matrix[1][1] += 1
+    return matrix
+   
+
+# Adds the results of one test file to another 
+def combine(results_one, results_two):
+    for obs in results_two:
+        for pred in results_two[obs]:
+            if obs in results_one:
+                if pred in results_one[obs]:
+                    results_one[obs][pred] += results_two[obs][pred]
+                else:
+                    results_one[obs][pred] = results_two[obs][pred]
             else:
-                for pred in results[obs]:
-                    if pred == '<eos>':
-                        matrix[1][0] += 1
-                    else:
-                        matrix[1][1] += 1
-        return results
-    
+                results_one[obs][pred] = results_two[obs][pred]
+    return results_one
+
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('model_path')
+    parser.add_argument('language_model_path')
+    parser.add_argument('tokenizer_path')
     parser.add_argument('corpus_path')
-    parser.add_argument('test_data_path')
+    parser.add_argument('test_files', type=Path, nargs='*')
 
     args = parser.parse_args()
 
-    evaluator = EvalModel(args.model_path, args.corpus_path)
-    results = evaluator.evaluate(args.test_data_path) 
-    print(results)
-    print(evaluator.compile_results(results))
+    evaluator = EvalModel(args.language_model_path, args.corpus_path, args.tokenizer_path)
+    
+    results = {}
+    
+    #test_files = glob.glob(args.test_files)
+    #print(len(test_files))
+    for test_data_path in args.test_files:
+        print(f'Testing on {test_data_path}')
+        print('-'*100) 
+        these_results = evaluator.evaluate(test_data_path)
+        results = combine(these_results, results) 
+        print(f'Results on this file:\n{these_results}')
+        print(f'Current cummulative results {results}')
+        print(f'Current compiled results {compile_results(results)}')

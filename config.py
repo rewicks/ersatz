@@ -49,14 +49,19 @@ class ModelConfiguration():
         self.save = conf["save"] if "save" in conf else None    
         self.when = int(conf["when"]) if "when" in conf else None
         self.model = conf["model"] if "model" in conf else None
-        
-        if "resume" in conf:
-            self.resume = conf["resume"]
+        self.clip = float(conf["clip"]) if "clip" in conf else 0.25
+        self.seed = int(conf["seed"]) if "seed" in conf else 1111
+        self.nonmono = int(conf["nonmono"]) if "nonmono" in conf else 5
+        self.log_interval = int(conf["log-interval"]) if "log-interval" in conf else 200
+               
+ 
+        if "resume" in conf and conf["resume"] == "True":
+            self.resume = True
         else:
             self.resume = False      
  
-        if "cuda" in conf:
-            self.cuda = conf["cuda"]
+        if "cuda" in conf and conf["cuda"] == "True":
+            self.cuda = True
         else:
             self.cuda = False
 

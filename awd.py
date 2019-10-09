@@ -20,15 +20,14 @@ PROCESSED_CORPUS_PATH = '/home/hltcoe/rwicks/ersatz/processed-corpora'
 # Load data
 ###############################################################################
 
-def model_save(fn):
+def model_save(model, criterion, optimizer, fn):
     with open(fn, 'wb') as f:
         torch.save([model, criterion, optimizer], f)
 
 def model_load(fn):
-    global model, criterion, optimizer
     with open(fn, 'rb') as f:
         model, criterion, optimizer = torch.load(f)
-
+    return model, criterion, optimizer
 
 def load_corpus(file_path, tokenizer_path):
     fn = os.path.join(PROCESSED_CORPUS_PATH, f'corpus.{hashlib.md5(file_path.encode()).hexdigest()}.{tokenizer_path.split("/")[-1][:-6]}.data')
@@ -85,13 +84,13 @@ def build(args):
     total_params = sum(x.size()[0] * x.size()[1] if len(x.size()) > 1 else x.size()[0] for x in params if x.size())
     print('Args:', args)
     print('Model total parameters:', total_params)
-    return model, corpus, params
+    return model, criterion, corpus, params
 
 ###############################################################################
 # Training code
 ###############################################################################
 
-def evaluate(data_source, batch_size=10):
+def evaluate(model, criterion, args, data_source, batch_size=10):
     # Turn on evaluation mode which disables dropout.
     model.eval()
     if args.model == 'QRNN': model.reset()
@@ -106,7 +105,7 @@ def evaluate(data_source, batch_size=10):
     return total_loss.item() / len(data_source)
 
 
-def train(args, model, optimizer, corpus, train_data, params, epoch):
+def train(args, model, criterion,  optimizer, corpus, train_data, params, epoch):
     # Turn on training mode which enables dropout.
     if args.model == 'QRNN': model.reset()
     total_loss = 0
@@ -162,7 +161,7 @@ def train(args, model, optimizer, corpus, train_data, params, epoch):
 
 def main(args):
 
-    model, corpus, params = build(args)
+    model, criterion, corpus, params = build(args)
     # Loop over epochs.
     lr = args.lr
     best_val_loss = []
@@ -182,14 +181,14 @@ def main(args):
             optimizer = torch.optim.Adam(params, lr=args.lr, weight_decay=args.wdecay)
         for epoch in range(1, args.epochs+1):
             epoch_start_time = time.time()
-            train(args, model, optimizer,  corpus, train_data, params, epoch)
+            train(args, model, criterion, optimizer,  corpus, train_data, params, epoch)
             if 't0' in optimizer.param_groups[0]:
                 tmp = {}
                 for prm in model.parameters():
                     tmp[prm] = prm.data.clone()
                     prm.data = optimizer.state[prm]['ax'].clone()
 
-                val_loss2 = evaluate(val_data)
+                val_loss2 = evaluate(model, criterion, args, val_data)
                 print('-' * 89)
                 print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
                     'valid ppl {:8.2f} | valid bpc {:8.3f}'.format(
@@ -197,7 +196,7 @@ def main(args):
                 print('-' * 89)
 
                 if val_loss2 < stored_loss:
-                    model_save(args.save)
+                    model_save(model, criterion, optimizer, args.save)
                     print('Saving Averaged!')
                     stored_loss = val_loss2
 
@@ -205,7 +204,7 @@ def main(args):
                     prm.data = tmp[prm].clone()
 
             else:
-                val_loss = evaluate(val_data, eval_batch_size)
+                val_loss = evaluate(model, criterion, args, val_data, eval_batch_size)
                 print('-' * 89)
                 print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
                     'valid ppl {:8.2f} | valid bpc {:8.3f}'.format(
@@ -213,7 +212,7 @@ def main(args):
                 print('-' * 89)
 
                 if val_loss < stored_loss:
-                    model_save(args.save)
+                    model_save(model, criterion, optimizer, args.save)
                     print('Saving model (new best validation)')
                     stored_loss = val_loss
 
@@ -223,7 +222,7 @@ def main(args):
 
                 if epoch == args.when:
                     print('Saving model before learning rate decreased')
-                    model_save('{}.e{}'.format(args.save, epoch))
+                    model_save(model, criterion, optimizer, '{}.e{}'.format(args.save, epoch))
                     print('Dividing learning rate by 10')
                     optimizer.param_groups[0]['lr'] /= 10.
 

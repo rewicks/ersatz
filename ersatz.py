@@ -1,6 +1,8 @@
 import argparse
 import config, train
 import sys, traceback
+import glob
+import test
 
 def train_model(args):
     if args.model == 'spm':
@@ -10,6 +12,9 @@ def train_model(args):
                 configuration = config.TokenConfiguration((open(args.config, 'r')).read())
                 print("Training SentencePiece with the following configuration: \n" + str(configuration))
                 train.train_sentence_piece(configuration)
+                output_path = configuration.file_path.split('/')[-1].split('.')
+                output_path = 'proc/' + ''.join(output_path[0:-1]) + '.tok.' + output_path[-1]
+                train.encode_sentence_piece(configuration.file_path, configuration.model_prefix + '.model', output_path)
             except Exception as e:
                 print(e)
                 print("Something went wrong while trying to train a Sentencepiece Model with the following configuration file:")
@@ -32,8 +37,13 @@ def test_model(args):
     sys.exit(-1)
 
 def segment(args):
-    print("Try again soon :) ")
-    sys.exit(-1)
+    if args.config is not None:
+        configuration = config.SegmentConfiguration((open(args.config, 'r')).read())
+        segmenter = test.EvalModel(configuration.language_model_path, configuration.tokenizer_path)
+        for f in glob.glob(configuration.test_files):
+            segmenter.evaluate(f)    
+
+    
 
 if __name__ == '__main__':
     
@@ -52,6 +62,10 @@ if __name__ == '__main__':
     test_parser = subparsers.add_parser('test', help='testing mode')
     test_parser.add_argument('-c', '--config', help="The path to the configuration file")
     test_parser.set_defaults(func=test_model)
+
+    seg_parser = subparsers.add_parser('segment', help='segment mode')
+    seg_parser.add_argument('-c', '--config', help="The path to the configuration file")
+    seg_parser.set_defaults(func=segment)
 
     args = parser.parse_args()
 

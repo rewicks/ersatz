@@ -18,7 +18,7 @@ LOGS = '/home/hltcoe/rwicks/ersatz/testing-logs/'
 
 class EvalModel():
     
-    def __init__(self, model_path, corpus_path, tokenizer):
+    def __init__(self, model_path, tokenizer):
         self.model, _, _ = self.load_model(model_path)
         if torch.cuda.is_available():
             self.model = self.model.cuda()    
@@ -32,10 +32,6 @@ class EvalModel():
     def load_model(self, model_path):
         with open(model_path, 'rb') as f:
             return torch.load(f, map_location=torch.device('cpu'))
-
-    def load_corpus(self, corpus_path):
-        fn = 'corpus.{}.data'.format(hashlib.md5(corpus_path.encode()).hexdigest())
-        return torch.load(fn).dictionary    
 
     # currently a redundant function to get the input in the correct
     # dimensions for the model
@@ -71,7 +67,11 @@ class EvalModel():
         self.model.eval()
         
         results = {}
+        
+        output_name = test_data.split('/')[-1].split('.')
+        output_name = 'segmented/' +  ''.join(output_name[0:-1]) + '.seg.' + output_name[-1]
 
+        output = open(output_name, 'w')
         # iterates over a test file
         # must be in the format of one sentence per line
         # with no extra tags
@@ -79,25 +79,30 @@ class EvalModel():
         def next_token():
             with open(test_data, 'r') as f:
                 for line in f:
-                    words = self.tokenizer.encode(line) + ['<eos>']
+                    words = self.tokenizer.encode(line)
                     for w in words:
                         yield w
         
         all_tokens = next_token()
         # initializes the model with the first word of the file
         # note that the model will never predict the first word of the file
-        self.reset_model(next(all_tokens))
+        first_word = next(all_tokens)
+        self.reset_model(first_word)
+        line = first_word
 
         counter = 1
         start = time.time()
         for observed_word in all_tokens:
             predicted_word = self.dictionary.idx2word[self.model.decoder(self.output).softmax(1).argmax()]
- 
+            
             self.log.write(f'{counter}: {self.context} [{observed_word}]: {predicted_word}\n')
 
             if predicted_word == '<eos>':
+                output.write(line + '\n')
+                line = observed_word
                 self.reset_model(observed_word)
             elif observed_word != '<eos>':
+                line += ' ' + observed_word
                 self.step(observed_word)
 
             counter += 1
@@ -105,16 +110,18 @@ class EvalModel():
             # dictionary is a confusion matrix
             # first key is the observed_word
             
-            if observed_word in results:
-                results[observed_word][predicted_word] = 1 + results[observed_word].get(predicted_word, 0)
-            else:
-                results[observed_word] = {}
-                results[observed_word][predicted_word] = 1
+            #if observed_word in results:
+            #    results[observed_word][predicted_word] = 1 + results[observed_word].get(predicted_word, 0)
+            #else:
+            #    results[observed_word] = {}
+            #    results[observed_word][predicted_word] = 1
  
-        return results
+        #return results
+        output.close()
 
-def compile_results(self, results):
-    matrix = [[0,0][0,0]]
+
+def compile_results(results):
+    matrix = [[0,0],[0,0]]
     for obs in results:
         if obs == '<eos>':
             for pred in results[obs]:
@@ -138,10 +145,6 @@ def combine(results_one, results_two):
             if obs in results_one:
                 if pred in results_one[obs]:
                     results_one[obs][pred] += results_two[obs][pred]
-                else:
-                    results_one[obs][pred] = results_two[obs][pred]
-            else:
-                results_one[obs][pred] = results_two[obs][pred]
     return results_one
 
 if __name__ == '__main__':
@@ -150,12 +153,11 @@ if __name__ == '__main__':
     
     parser.add_argument('language_model_path')
     parser.add_argument('tokenizer_path')
-    parser.add_argument('corpus_path')
     parser.add_argument('test_files', type=Path, nargs='*')
 
     args = parser.parse_args()
 
-    evaluator = EvalModel(args.language_model_path, args.corpus_path, args.tokenizer_path)
+    evaluator = EvalModel(args.language_model_path, args.tokenizer_path, args.output)
     
     results = {}
     
@@ -166,6 +168,6 @@ if __name__ == '__main__':
         print('-'*100) 
         these_results = evaluator.evaluate(test_data_path)
         results = combine(these_results, results) 
-        print(f'Results on this file:\n{these_results}')
-        print(f'Current cummulative results {results}')
-        print(f'Current compiled results {compile_results(results)}')
+        #print(f'Results on this file:\n{these_results}')
+    #print(f'Current cummulative results {results}')
+    print(f'Current compiled results {compile_results(results)}')

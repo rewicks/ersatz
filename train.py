@@ -20,7 +20,7 @@ def encode_sentence_piece(file_path, model_path, output_path):
     #sp.SetEncodeExtraOptions('eos')
 
     output = open(output_path, 'w')
-
+    print(output_path)
     with open(file_path, 'r') as inputFile:
         for line in inputFile:
             tokens = sp.EncodeAsPieces(line) + ["\n"]

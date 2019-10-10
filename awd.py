@@ -14,7 +14,7 @@ import hashlib
 from splitcross import SplitCrossEntropyLoss
 from dropout import WeightDrop
 
-PROCESSED_CORPUS_PATH = '/home/hltcoe/rwicks/ersatz/processed-corpora'
+#PROCESSED_CORPUS_PATH = '/home/hltcoe/rwicks/ersatz/processed-corpora'
 
 ###############################################################################
 # Load data
@@ -30,7 +30,8 @@ def model_load(fn):
     return model, criterion, optimizer
 
 def load_corpus(file_path, tokenizer_path):
-    fn = os.path.join(PROCESSED_CORPUS_PATH, f'corpus.{hashlib.md5(file_path.encode()).hexdigest()}.{tokenizer_path.split("/")[-1][:-6]}.data')
+    #fn = os.path.join(PROCESSED_CORPUS_PATH, f'corpus.{hashlib.md5(file_path.encode()).hexdigest()}.{tokenizer_path.split("/")[-1][:-6]}.data')
+    fn = f'corpus.{hashlib.md5(file_path.encode()).hexdigest()}.{tokenizer_path.split("/")[-1][:-6]}.data'
     if os.path.exists(fn):
         print('Loading cached dataset...')
         corpus = torch.load(fn)

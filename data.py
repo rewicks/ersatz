@@ -31,7 +31,7 @@ class TrainingCorpus(object):
         self.train, self.valid = self.tokenize(training_path, tokenizer)
         
 
-    def tokenize(self, path, tokenizer, train_percent=0.5):
+    def tokenize(self, path, tokenizer, train_percent=0.95):
         """Tokenizes a text file."""
         assert os.path.exists(path)
 
@@ -50,7 +50,7 @@ class TrainingCorpus(object):
         validation_tokens = 0
         with open(path, 'r') as f:
             for line in f:
-                words = tokenizer.encode(line) + ['<eos>']
+                words = line.split() + ['<eos>']
                 if counter <= training_sentences:
                     training_tokens += len(words)
                 else:
@@ -67,7 +67,7 @@ class TrainingCorpus(object):
             token = 0
             counter = 0
             for line in f:
-                words = tokenizer.encode(line) + ['<eos>']
+                words = line.split() + ['<eos>']
                 if counter <= training_sentences:
                     for word in words:
                         training_ids[token] = self.dictionary.word2idx[word]

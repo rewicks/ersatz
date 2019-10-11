@@ -101,8 +101,7 @@ class SegmentConfiguration():
         conf = json.loads(configuration)
         self.language_model_path = conf["language_model_path"] if "language_model_path" in conf else None
         self.tokenizer_path = conf["tokenizer_path"] if "tokenizer_path" in conf else None
-        self.corpus_path = conf["test_files"] if "test_files" in conf else None
-
+        self.test_files = conf["test_files"] if "test_files" in conf else None
 
 class Configuration():
     def __init__(self, configuration):

@@ -41,7 +41,8 @@ def segment(args):
         configuration = config.SegmentConfiguration((open(args.config, 'r')).read())
         segmenter = test.EvalModel(configuration.language_model_path, configuration.tokenizer_path)
         for f in glob.glob(configuration.test_files):
-            segmenter.evaluate(f)    
+            output = segmenter.evaluate(f)
+            test.detokenize(output)    
 
     
 

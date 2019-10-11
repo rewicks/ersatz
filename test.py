@@ -14,7 +14,6 @@ from pathlib import Path
 
 '''
 
-LOGS = '/home/hltcoe/rwicks/ersatz/testing-logs/'
 
 class EvalModel():
     
@@ -27,7 +26,7 @@ class EvalModel():
         self.tokenizer = Tokenizer.SPM(tokenizer)
         self.context = ''   # keeps track of the words that have thus far been given as input to the model
         affix = model_path.split('/')[-1].split('.')[0] + '.txt'
-        self.log = open(os.path.join(LOGS, affix), 'w')
+        self.log = open('log-' + affix, 'w')
 
     def load_model(self, model_path):
         with open(model_path, 'rb') as f:
@@ -118,7 +117,7 @@ class EvalModel():
  
         #return results
         output.close()
-
+        return output_name
 
 def compile_results(results):
     matrix = [[0,0],[0,0]]
@@ -146,6 +145,16 @@ def combine(results_one, results_two):
                 if pred in results_one[obs]:
                     results_one[obs][pred] += results_two[obs][pred]
     return results_one
+
+def detokenize(tokenized_path):
+    output_name = tokenized_path.split('/')[-1].split('.')
+    output_name = 'detok/' + ''.join(output_name[0:-1]) + '.detok.' + output_name[-1]
+    output = open(output_name, 'w')
+    with open(tokenized_path, 'r') as f:
+        for line in f:
+            line = line.split()
+            line = ''.join(line).replace('\u2581', ' ')
+            output.write(line + '\n')
 
 if __name__ == '__main__':
     

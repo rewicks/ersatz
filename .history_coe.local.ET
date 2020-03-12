@@ -1,0 +1,230 @@
+2020 Feb 12 Wed 13:52:49 EST test1 /home/hltcoe/rwicks/ersatz/ET   888  cd ET/
+2020 Feb 12 Wed 13:52:49 EST test1 /home/hltcoe/rwicks/ersatz/ET   889  ls
+2020 Feb 12 Wed 13:53:05 EST test1 /home/hltcoe/rwicks/ersatz/ET   890  tmux a
+2020 Feb 12 Wed 13:53:11 EST test1 /home/hltcoe/rwicks/ersatz/ET   877  exit
+2020 Feb 12 Wed 13:53:12 EST test1 /home/hltcoe/rwicks/ersatz/ET   877  exit
+2020 Feb 12 Wed 13:53:14 EST test1 /home/hltcoe/rwicks/ersatz/ET   877  exit
+2020 Feb 12 Wed 13:53:17 EST test1 /home/hltcoe/rwicks/ersatz/ET   878  ls
+2020 Feb 12 Wed 13:53:19 EST test1 /home/hltcoe/rwicks/ersatz/ET   878  ls
+2020 Feb 12 Wed 14:17:13 EST test1 /home/hltcoe/rwicks/ersatz/ET   891  tmux new -s ersatz
+2020 Feb 12 Wed 14:17:14 EST test1 /home/hltcoe/rwicks/ersatz/ET   892  ls
+2020 Feb 12 Wed 14:17:18 EST test1 /home/hltcoe/rwicks/ersatz/ET   893  qstat
+2020 Feb 21 Fri 09:16:42 EST test1 /home/hltcoe/rwicks/ersatz/ET  1023  cd ../ET
+2020 Feb 21 Fri 09:16:43 EST test1 /home/hltcoe/rwicks/ersatz/ET  1024  ls
+2020 Feb 21 Fri 09:24:02 EST test1 /home/hltcoe/rwicks/ersatz/ET  1025  vim dataset.py 
+2020 Feb 21 Fri 09:24:10 EST test1 /home/hltcoe/rwicks/ersatz/ET  1026  conda activate py3
+2020 Feb 21 Fri 09:30:39 EST test1 /home/hltcoe/rwicks/ersatz/ET  1029  cd ET/
+2020 Feb 21 Fri 09:30:39 EST test1 /home/hltcoe/rwicks/ersatz/ET  1030  ls
+2020 Feb 21 Fri 10:04:38 EST test1 /home/hltcoe/rwicks/ersatz/ET  1053  cd ET
+2020 Feb 21 Fri 10:04:38 EST test1 /home/hltcoe/rwicks/ersatz/ET  1054  ls
+2020 Feb 21 Fri 10:05:35 EST test1 /home/hltcoe/rwicks/ersatz/ET  1055  python dataset.py /home/hltcoe/rwicks/ersatz/data/raw/en/train/wikipedia/wiki.spm.10000.en --left_context_size=5 --right_context_size=5 --eos_percent=0.3
+2020 Feb 21 Fri 10:09:54 EST test1 /home/hltcoe/rwicks/ersatz/ET  1056  vim dataset.py 
+2020 Feb 21 Fri 10:09:57 EST test1 /home/hltcoe/rwicks/ersatz/ET  1057  python dataset.py /home/hltcoe/rwicks/ersatz/data/raw/en/train/wikipedia/wiki.spm.10000.en --left_context_size=5 --right_context_size=5 --eos_percent=0.3
+2020 Feb 21 Fri 10:10:11 EST test1 /home/hltcoe/rwicks/ersatz/ET  1058  python dataset.py /home/hltcoe/rwicks/ersatz/data/raw/en/train/wikipedia/wiki.spm.10000.en --left_size=5 --right_size=5 --eos_percent=0.3
+2020 Feb 21 Fri 10:10:23 EST test1 /home/hltcoe/rwicks/ersatz/ET  1059  python dataset.py /home/hltcoe/rwicks/ersatz/data/raw/en/train/wikipedia/wiki.spm.10000.en --left_size=5 --right_size=5 --word-frequeny=0.3
+2020 Feb 21 Fri 10:10:26 EST test1 /home/hltcoe/rwicks/ersatz/ET  1060  python dataset.py /home/hltcoe/rwicks/ersatz/data/raw/en/train/wikipedia/wiki.spm.10000.en --left_size=5 --right_size=5 --word-frequency=0.3
+2020 Feb 21 Fri 10:16:01 EST test1 /home/hltcoe/rwicks/ersatz/ET  1093  cd ../ersatz/ET/
+2020 Feb 21 Fri 10:16:01 EST test1 /home/hltcoe/rwicks/ersatz/ET  1094  ls
+2020 Feb 21 Fri 10:17:40 EST test1 /home/hltcoe/rwicks/ersatz/ET  1061  python dataset.py /home/hltcoe/rwicks/ersatz/data/raw/en/train/wikipedia/wiki.spm.10000.en --left-size=5 --right-size=5 --word-frequency=0.3
+2020 Feb 21 Fri 10:17:40 EST test1 /home/hltcoe/rwicks/ersatz/ET  1061  python dataset.py /home/hltcoe/rwicks/ersatz/data/raw/en/train/wikipedia/wiki.spm.10000.en --left-size=5 --right-size=5 --word-frequency=0.3
+2020 Feb 21 Fri 10:18:25 EST test1 /home/hltcoe/rwicks/ersatz/ET  1062  vim dataset.py 
+2020 Feb 21 Fri 10:20:14 EST test1 /home/hltcoe/rwicks/ersatz/ET  1068  cd ../ersatz/ET/
+2020 Feb 21 Fri 10:21:57 EST test1 /home/hltcoe/rwicks/ersatz/ET  1069  vim dataset.py 
+2020 Feb 21 Fri 10:27:18 EST test1 /home/hltcoe/rwicks/ersatz/ET  1016  cd ersatz/ET/
+2020 Feb 21 Fri 10:27:18 EST test1 /home/hltcoe/rwicks/ersatz/ET  1017  ls
+2020 Feb 21 Fri 10:27:56 EST test1 /home/hltcoe/rwicks/ersatz/ET  1031  vim model.py 
+2020 Feb 21 Fri 10:29:03 EST test1 /home/hltcoe/rwicks/ersatz/ET  1032  vim trainer.py 
+2020 Feb 21 Fri 10:43:53 EST test1 /home/hltcoe/rwicks/ersatz/ET  1018  tmux a
+2020 Feb 21 Fri 10:43:54 EST test1 /home/hltcoe/rwicks/ersatz/ET  1019  ls
+2020 Feb 21 Fri 10:45:01 EST test1 /home/hltcoe/rwicks/ersatz/ET  1033  vim dataset.py 
+2020 Feb 21 Fri 10:45:45 EST test1 /home/hltcoe/rwicks/ersatz/ET  1034  vim trainer.py 
+2020 Feb 21 Fri 10:45:58 EST test1 /home/hltcoe/rwicks/ersatz/ET  1035  vim dataset.py 
+2020 Feb 21 Fri 10:46:20 EST test1 /home/hltcoe/rwicks/ersatz/ET  1036  vim trainer.py 
+2020 Feb 21 Fri 10:49:12 EST test1 /home/hltcoe/rwicks/ersatz/ET  1037  vim model.py 
+2020 Feb 21 Fri 10:49:57 EST test1 /home/hltcoe/rwicks/ersatz/ET  1038  vim trainer.py 
+2020 Feb 21 Fri 10:50:16 EST test1 /home/hltcoe/rwicks/ersatz/ET  1039  vim model.py 
+2020 Feb 21 Fri 10:53:46 EST test1 /home/hltcoe/rwicks/ersatz/ET  1040  vim dataset.py 
+2020 Feb 21 Fri 10:54:05 EST test1 /home/hltcoe/rwicks/ersatz/ET  1041  vim model.py 
+2020 Feb 21 Fri 10:55:54 EST test1 /home/hltcoe/rwicks/ersatz/ET  1042  clear
+2020 Feb 21 Fri 10:56:13 EST test1 /home/hltcoe/rwicks/ersatz/ET  1043  qalter 7927527 -N five
+2020 Feb 21 Fri 10:56:14 EST test1 /home/hltcoe/rwicks/ersatz/ET  1044  qstat
+2020 Feb 21 Fri 10:56:34 EST test1 /home/hltcoe/rwicks/ersatz/ET  1045  clear
+2020 Feb 21 Fri 10:56:35 EST test1 /home/hltcoe/rwicks/ersatz/ET  1046  ls
+2020 Feb 21 Fri 10:56:44 EST test1 /home/hltcoe/rwicks/ersatz/ET  1047  vim split.py 
+2020 Feb 21 Fri 11:01:37 EST test1 /home/hltcoe/rwicks/ersatz/ET  1048  vim trainer.py 
+2020 Feb 26 Wed 11:53:54 EST test1 /home/hltcoe/rwicks/ersatz/ET  1331  cd ~/ersatz/ET/
+2020 Feb 26 Wed 11:53:54 EST test1 /home/hltcoe/rwicks/ersatz/ET  1332  ls
+2020 Feb 26 Wed 11:54:32 EST test1 /home/hltcoe/rwicks/ersatz/ET  1333  view dataset.py 
+2020 Feb 26 Wed 11:58:05 EST test1 /home/hltcoe/rwicks/ersatz/ET  1384  cd ET
+2020 Feb 26 Wed 11:58:06 EST test1 /home/hltcoe/rwicks/ersatz/ET  1385  ls
+2020 Feb 26 Wed 11:58:22 EST test1 /home/hltcoe/rwicks/ersatz/ET  1386  vim run.sh
+2020 Feb 26 Wed 11:58:29 EST test1 /home/hltcoe/rwicks/ersatz/ET  1387  ls proc
+2020 Feb 26 Wed 11:58:32 EST test1 /home/hltcoe/rwicks/ersatz/ET  1388  rm -r proc
+2020 Feb 26 Wed 11:58:33 EST test1 /home/hltcoe/rwicks/ersatz/ET  1389  ls
+2020 Feb 26 Wed 11:58:43 EST test1 /home/hltcoe/rwicks/ersatz/ET  1392  cd ..
+2020 Feb 26 Wed 12:49:17 EST test1 /home/hltcoe/rwicks/ersatz/ET  1432  cd ~/ersatz/ET/
+2020 Feb 26 Wed 12:49:17 EST test1 /home/hltcoe/rwicks/ersatz/ET  1433  ls
+2020 Feb 26 Wed 12:49:41 EST test1 /home/hltcoe/rwicks/ersatz/ET  1434  vim dataset.py 
+2020 Feb 26 Wed 12:49:42 EST test1 /home/hltcoe/rwicks/ersatz/ET  1435  ls
+2020 Feb 26 Wed 13:06:46 EST test1 /home/hltcoe/rwicks/ersatz/ET  1459  cd ~/ersatz/ET/
+2020 Feb 26 Wed 13:06:47 EST test1 /home/hltcoe/rwicks/ersatz/ET  1460  ls
+2020 Feb 26 Wed 13:07:08 EST test1 /home/hltcoe/rwicks/ersatz/ET  1461  vim dataset.py 
+2020 Feb 26 Wed 13:08:58 EST test1 /home/hltcoe/rwicks/ersatz/ET  1461  vim dataset.py 
+2020 Feb 26 Wed 13:12:51 EST test1 /home/hltcoe/rwicks/ersatz/ET  1461  vim dataset.py 
+2020 Feb 26 Wed 16:42:38 EST test1 /home/hltcoe/rwicks/ersatz/ET  1506  cd ~/ersatz/ET/
+2020 Feb 26 Wed 16:42:38 EST test1 /home/hltcoe/rwicks/ersatz/ET  1507  ls
+2020 Feb 26 Wed 16:47:25 EST test1 /home/hltcoe/rwicks/ersatz/ET  1508  vim dataset.py 
+2020 Feb 26 Wed 23:09:28 EST test1 /home/hltcoe/rwicks/ersatz/ET  1562  cd ~/ersatz/ET
+2020 Feb 26 Wed 23:09:28 EST test1 /home/hltcoe/rwicks/ersatz/ET  1563  ls
+2020 Feb 26 Wed 23:10:46 EST test1 /home/hltcoe/rwicks/ersatz/ET  1564  vim trainer.py 
+2020 Feb 26 Wed 23:10:53 EST test1 /home/hltcoe/rwicks/ersatz/ET  1565  git add -A
+2020 Feb 26 Wed 23:11:01 EST test1 /home/hltcoe/rwicks/ersatz/ET  1566  git commit -m "pre-big fixes"
+2020 Feb 26 Wed 23:25:34 EST test1 /home/hltcoe/rwicks/ersatz/ET  1000  watch qstat
+2020 Feb 26 Wed 23:25:35 EST test1 /home/hltcoe/rwicks/ersatz/ET  1001  qstat
+2020 Feb 26 Wed 23:31:46 EST test1 /home/hltcoe/rwicks/ersatz/ET  1567  vim trainer.py
+2020 Feb 26 Wed 23:32:24 EST test1 /home/hltcoe/rwicks/ersatz/ET  1568  vim dataset.py 
+2020 Feb 26 Wed 23:50:13 EST test1 /home/hltcoe/rwicks/ersatz/ET  1000  qstat
+2020 Feb 26 Wed 23:54:58 EST test1 /home/hltcoe/rwicks/ersatz/ET  1000  qstat
+2020 Feb 26 Wed 23:54:59 EST test1 /home/hltcoe/rwicks/ersatz/ET  1001  ls
+2020 Feb 26 Wed 23:55:04 EST test1 /home/hltcoe/rwicks/ersatz/ET  1002  python
+2020 Feb 26 Wed 23:55:07 EST test1 /home/hltcoe/rwicks/ersatz/ET  1003  conda activate py3
+2020 Feb 27 Thu 00:11:21 EST test1 /home/hltcoe/rwicks/ersatz/ET  1004  python
+2020 Feb 27 Thu 00:14:28 EST test1 /home/hltcoe/rwicks/ersatz/ET  1000  python
+2020 Feb 27 Thu 00:14:45 EST test1 /home/hltcoe/rwicks/ersatz/ET  1000  python
+2020 Feb 27 Thu 00:17:01 EST test1 /home/hltcoe/rwicks/ersatz/ET  1569  vim trainer.py
+2020 Feb 27 Thu 00:17:58 EST test1 /home/hltcoe/rwicks/ersatz/ET  1570  vim dataset.py 
+2020 Feb 27 Thu 00:19:16 EST test1 /home/hltcoe/rwicks/ersatz/ET  1571  vim trainer.py
+2020 Feb 27 Thu 00:19:17 EST test1 /home/hltcoe/rwicks/ersatz/ET  1572  ls
+2020 Feb 27 Thu 00:19:20 EST test1 /home/hltcoe/rwicks/ersatz/ET  1000  python
+2020 Feb 27 Thu 00:19:25 EST test1 /home/hltcoe/rwicks/ersatz/ET  1001  cd ~/ersatz/ET/
+2020 Feb 27 Thu 00:19:26 EST test1 /home/hltcoe/rwicks/ersatz/ET  1002  ls
+2020 Feb 27 Thu 01:15:05 EST test1 /home/hltcoe/rwicks/ersatz/ET  1573  vim trainer.py 
+2020 Feb 27 Thu 01:20:44 EST test1 /home/hltcoe/rwicks/ersatz/ET  1574  vim dataset.py 
+2020 Feb 27 Thu 01:21:36 EST test1 /home/hltcoe/rwicks/ersatz/ET  1575  vim trainer.py 
+2020 Feb 27 Thu 01:21:50 EST test1 /home/hltcoe/rwicks/ersatz/ET  1576  cd ~/ersatz/ET/
+2020 Feb 27 Thu 01:21:50 EST test1 /home/hltcoe/rwicks/ersatz/ET  1577  ls
+2020 Feb 27 Thu 01:31:40 EST test1 /home/hltcoe/rwicks/ersatz/ET  1001  cd ~/ersatz/ET/
+2020 Feb 27 Thu 01:44:06 EST test1 /home/hltcoe/rwicks/ersatz/ET  1002  vim dataset.py 
+2020 Feb 27 Thu 01:44:09 EST test1 /home/hltcoe/rwicks/ersatz/ET  1003  vim trainer.py 
+2020 Feb 27 Thu 01:48:53 EST test1 /home/hltcoe/rwicks/ersatz/ET  1003  vim trainer.py 
+2020 Feb 27 Thu 01:49:56 EST test1 /home/hltcoe/rwicks/ersatz/ET  1003  vim trainer.py 
+2020 Feb 27 Thu 10:02:11 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1001  cd ~/ersatz/ET/
+2020 Feb 27 Thu 10:02:11 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1002  ls
+2020 Feb 27 Thu 10:02:56 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1003  vim dataset.py 
+2020 Feb 27 Thu 10:05:04 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1004  watch ls ~/ersatz/exp/14/preprocess/
+2020 Feb 27 Thu 10:06:08 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1005  vim dataset.py 
+2020 Feb 27 Thu 10:16:53 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1006  watch ls ~/ersatz/exp/14/preprocess/
+2020 Feb 27 Thu 10:17:00 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1007  ls ~/ersatz/exp/14/preprocess/
+2020 Feb 27 Thu 10:24:00 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1007  ls ~/ersatz/exp/14/preprocess/
+2020 Feb 27 Thu 10:24:03 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1007  ls ~/ersatz/exp/14/preprocess/
+2020 Feb 27 Thu 10:26:35 EST test1 /home/hltcoe/rwicks/ersatz/ET  1122  cd ~/ersatz/ET/
+2020 Feb 27 Thu 10:26:35 EST test1 /home/hltcoe/rwicks/ersatz/ET  1123  ls
+2020 Feb 27 Thu 10:26:39 EST test1 /home/hltcoe/rwicks/ersatz/ET  1124  vim split.py 
+2020 Feb 27 Thu 10:31:59 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1007  ls ~/ersatz/exp/14/preprocess/
+2020 Feb 27 Thu 10:32:00 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1007  ls ~/ersatz/exp/14/preprocess/
+2020 Feb 27 Thu 10:36:08 EST test1 /home/hltcoe/rwicks/ersatz/ET  1131  cd ../ET/
+2020 Feb 27 Thu 10:36:09 EST test1 /home/hltcoe/rwicks/ersatz/ET  1132  ls
+2020 Feb 27 Thu 10:36:15 EST test1 /home/hltcoe/rwicks/ersatz/ET  1133  git add -A
+2020 Feb 27 Thu 10:36:34 EST test1 /home/hltcoe/rwicks/ersatz/ET  1134  git commit -m "rewrote batching methods; added in scoring script"
+2020 Feb 27 Thu 10:36:36 EST test1 /home/hltcoe/rwicks/ersatz/ET  1135  git push
+2020 Feb 27 Thu 10:38:58 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1007  ls ~/ersatz/exp/14/preprocess/
+2020 Feb 27 Thu 10:39:03 EST r5n05 /home/hltcoe/rwicks/ersatz/ET  1008  ls ~/ersatz/exp/14/preprocess/*.bin
+2020 Feb 27 Thu 16:22:35 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1002  cd ersatz/ET/
+2020 Feb 27 Thu 16:22:35 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1003  ls
+2020 Feb 27 Thu 16:30:42 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1004  vim trainer.py 
+2020 Feb 27 Thu 16:36:25 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1004  vim trainer.py 
+2020 Feb 27 Thu 16:42:15 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1004  vim trainer.py 
+2020 Feb 27 Thu 16:46:54 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1000  source ~/.bashrc
+2020 Feb 27 Thu 16:46:56 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1001  ls
+2020 Feb 27 Thu 16:47:21 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1005  watch nvidia-smi
+2020 Feb 27 Thu 16:47:27 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1006  watch nvidia-smi | tail
+2020 Feb 27 Thu 16:47:43 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1007  watch $(nvidia-smi | tail)
+2020 Feb 27 Thu 16:47:55 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1008  watch (nvidia-smi | tail)
+2020 Feb 27 Thu 16:48:01 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1009  watch | nvidia-smi | tail
+2020 Feb 27 Thu 16:48:20 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1010  watch nvidia-smi | tail
+2020 Feb 27 Thu 17:11:07 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1011  watch nvidia-smi
+2020 Feb 27 Thu 17:19:46 EST r8n05 /home/hltcoe/rwicks/ersatz/ET  1000  watch nvidia-smi
+2020 Mar 02 Mon 15:34:49 EST test1 /home/hltcoe/rwicks/ersatz/ET  1049  vim model.py 
+2020 Mar 02 Mon 15:34:49 EST test1 /home/hltcoe/rwicks/ersatz/ET  1050  clear
+2020 Mar 02 Mon 15:34:53 EST test1 /home/hltcoe/rwicks/ersatz/ET  1051  ls
+2020 Mar 03 Tue 15:05:26 EST test1 /home/hltcoe/rwicks/ersatz/ET  1001  cd ersatz/ET/
+2020 Mar 03 Tue 15:05:26 EST test1 /home/hltcoe/rwicks/ersatz/ET  1002  ls
+2020 Mar 03 Tue 15:10:25 EST test1 /home/hltcoe/rwicks/ersatz/ET  1003  vim trainer.py 
+2020 Mar 03 Tue 15:48:23 EST test1 /home/hltcoe/rwicks/ersatz/ET  1033  cd ~/ersatz/ET/
+2020 Mar 03 Tue 15:48:23 EST test1 /home/hltcoe/rwicks/ersatz/ET  1034  ls
+2020 Mar 03 Tue 15:48:27 EST test1 /home/hltcoe/rwicks/ersatz/ET  1035  git add -A
+2020 Mar 03 Tue 15:48:35 EST test1 /home/hltcoe/rwicks/ersatz/ET  1036  git commit -m "training models"
+2020 Mar 03 Tue 15:57:25 EST test1 /home/hltcoe/rwicks/ersatz/ET  1037  qstat
+2020 Mar 03 Tue 15:58:58 EST test1 /home/hltcoe/rwicks/ersatz/ET  1037  qstat
+2020 Mar 03 Tue 16:03:31 EST test1 /home/hltcoe/rwicks/ersatz/ET  1037  qstat
+2020 Mar 03 Tue 16:03:33 EST test1 /home/hltcoe/rwicks/ersatz/ET  1038  ls
+2020 Mar 05 Thu 09:28:26 EST test1 /home/hltcoe/rwicks/ersatz/ET  1001  cd ersatz/ET/
+2020 Mar 05 Thu 09:28:26 EST test1 /home/hltcoe/rwicks/ersatz/ET  1002  ls
+2020 Mar 05 Thu 09:28:30 EST test1 /home/hltcoe/rwicks/ersatz/ET  1003  tmux ls
+2020 Mar 05 Thu 09:28:35 EST test1 /home/hltcoe/rwicks/ersatz/ET  1037  cd ~/ersatz/ET/
+2020 Mar 05 Thu 09:28:35 EST test1 /home/hltcoe/rwicks/ersatz/ET  1038  ls
+2020 Mar 05 Thu 09:28:36 EST test1 /home/hltcoe/rwicks/ersatz/ET  1039  clear
+2020 Mar 05 Thu 09:28:36 EST test1 /home/hltcoe/rwicks/ersatz/ET  1040  ls
+2020 Mar 05 Thu 10:06:39 EST test1 /home/hltcoe/rwicks/ersatz/ET  1041  vim trainer.py 
+2020 Mar 05 Thu 10:06:59 EST test1 /home/hltcoe/rwicks/ersatz/ET  1042  vim dataset.py 
+2020 Mar 05 Thu 10:10:30 EST test1 /home/hltcoe/rwicks/ersatz/ET  1043  vim trainer.py 
+2020 Mar 08 Sun 18:48:49 EDT test1 /home/hltcoe/rwicks/ersatz/ET  1044  ls
+2020 Mar 11 Wed 17:58:17 EDT test1 /home/hltcoe/rwicks/ersatz/ET  1045  qrsh -l gpu=2,h_rt=1:0:0 -q gpu.q@@2080
+2020 Mar 11 Wed 17:58:25 EDT test1 /home/hltcoe/rwicks/ersatz/ET  1046  qrsh -l gpu=2,h_rt=1:0:0 -q gpu.q@@1080
+2020 Mar 11 Wed 18:07:19 EDT test1 /home/hltcoe/rwicks/ersatz/ET  1047  qrsh -l gpu=2,h_rt=0:59:0 -q gpu_short.q
+2020 Mar 11 Wed 18:23:14 EDT test1 /home/hltcoe/rwicks/ersatz/ET  1048  qrsh -l gpu=4,h_rt=0:59:0 -q gpu_short.q
+2020 Mar 11 Wed 18:23:16 EDT test1 /home/hltcoe/rwicks/ersatz/ET  1049  qstat
+2020 Mar 12 Thu 08:15:51 EDT test1 /home/hltcoe/rwicks/ersatz/ET   637  cd ~/ersatz/ET/
+2020 Mar 12 Thu 08:15:55 EDT test1 /home/hltcoe/rwicks/ersatz/ET   637  cd ~/ersatz/ET
+2020 Mar 12 Thu 08:18:23 EDT test1 /home/hltcoe/rwicks/ersatz/ET   638  vim split.py 
+2020 Mar 12 Thu 08:19:27 EDT test1 /home/hltcoe/rwicks/ersatz/ET   639  vim dataset.py 
+2020 Mar 12 Thu 08:20:28 EDT test1 /home/hltcoe/rwicks/ersatz/ET   638  vim model.py 
+2020 Mar 12 Thu 08:20:32 EDT test1 /home/hltcoe/rwicks/ersatz/ET   639  ls ~/ersatz/models/
+2020 Mar 12 Thu 08:21:15 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim dataset.py 
+2020 Mar 12 Thu 08:21:18 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim split.py 
+2020 Mar 12 Thu 08:22:29 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim split.py 
+2020 Mar 12 Thu 08:22:36 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim dataset.py 
+2020 Mar 12 Thu 08:22:38 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim split.py 
+2020 Mar 12 Thu 08:23:12 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim dataset.py 
+2020 Mar 12 Thu 08:55:13 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim dataset.py 
+2020 Mar 12 Thu 08:55:16 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim split.py 
+2020 Mar 12 Thu 08:57:44 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim split.py 
+2020 Mar 12 Thu 08:57:48 EDT test1 /home/hltcoe/rwicks/ersatz/ET   640  vim dataset.py 
+2020 Mar 12 Thu 09:06:15 EDT test1 /home/hltcoe/rwicks/ersatz/ET   644  cd ~/ersatz/ET/
+2020 Mar 12 Thu 09:06:15 EDT test1 /home/hltcoe/rwicks/ersatz/ET   645  ls
+2020 Mar 12 Thu 09:06:18 EDT test1 /home/hltcoe/rwicks/ersatz/ET   646  git add -A
+2020 Mar 12 Thu 09:06:33 EDT test1 /home/hltcoe/rwicks/ersatz/ET   647  git commit -m "updated split to be able to handle varying context window sizes"
+2020 Mar 12 Thu 09:06:50 EDT test1 /home/hltcoe/rwicks/ersatz/ET   648  ls
+2020 Mar 12 Thu 09:09:00 EDT test1 /home/hltcoe/rwicks/ersatz/ET   652  cd ~/ersatz/ET/
+2020 Mar 12 Thu 09:09:02 EDT test1 /home/hltcoe/rwicks/ersatz/ET   653  git remote add origin/master https://github.com/rewicks/ersatz.git
+2020 Mar 12 Thu 09:09:06 EDT test1 /home/hltcoe/rwicks/ersatz/ET   654  git banch
+2020 Mar 12 Thu 09:09:09 EDT test1 /home/hltcoe/rwicks/ersatz/ET   655  git branch
+2020 Mar 12 Thu 09:09:20 EDT test1 /home/hltcoe/rwicks/ersatz/ET   656  git checkout -b transformer
+2020 Mar 12 Thu 09:09:23 EDT test1 /home/hltcoe/rwicks/ersatz/ET   657  git branch
+2020 Mar 12 Thu 09:17:40 EDT test1 /home/hltcoe/rwicks/ersatz/ET   679  git stash
+2020 Mar 12 Thu 09:17:43 EDT test1 /home/hltcoe/rwicks/ersatz/ET   680  git add -A
+2020 Mar 12 Thu 09:17:51 EDT test1 /home/hltcoe/rwicks/ersatz/ET   681  git commit -m "transformer based ersatz"
+2020 Mar 12 Thu 09:18:20 EDT test1 /home/hltcoe/rwicks/ersatz/ET   682  git push -u origin transformer
+2020 Mar 12 Thu 09:19:09 EDT test1 /home/hltcoe/rwicks/ersatz/ET   683  vim split.py 
+2020 Mar 12 Thu 09:19:19 EDT test1 /home/hltcoe/rwicks/ersatz/ET   684  git log -all
+2020 Mar 12 Thu 09:19:23 EDT test1 /home/hltcoe/rwicks/ersatz/ET   685  git log --al
+2020 Mar 12 Thu 09:19:47 EDT test1 /home/hltcoe/rwicks/ersatz/ET   686  git log --all
+2020 Mar 12 Thu 09:19:47 EDT test1 /home/hltcoe/rwicks/ersatz/ET   686  git log --all
+2020 Mar 12 Thu 09:19:56 EDT test1 /home/hltcoe/rwicks/ersatz/ET   687  git reset HEAD
+2020 Mar 12 Thu 09:19:59 EDT test1 /home/hltcoe/rwicks/ersatz/ET   687  git reset HEAD
+2020 Mar 12 Thu 09:20:02 EDT test1 /home/hltcoe/rwicks/ersatz/ET   688  ls
+2020 Mar 12 Thu 09:20:40 EDT test1 /home/hltcoe/rwicks/ersatz/ET   689  git reset HEAD-2
+2020 Mar 12 Thu 09:20:44 EDT test1 /home/hltcoe/rwicks/ersatz/ET   690  git reset HEAD~2
+2020 Mar 12 Thu 09:20:46 EDT test1 /home/hltcoe/rwicks/ersatz/ET   691  git reset HEAD~5
+2020 Mar 12 Thu 09:20:50 EDT test1 /home/hltcoe/rwicks/ersatz/ET   692  git reset HEAD~10
+2020 Mar 12 Thu 09:20:53 EDT test1 /home/hltcoe/rwicks/ersatz/ET   693  git reset HEAD~9
+2020 Mar 12 Thu 09:20:54 EDT test1 /home/hltcoe/rwicks/ersatz/ET   694  git reset HEAD~8
+2020 Mar 12 Thu 09:20:56 EDT test1 /home/hltcoe/rwicks/ersatz/ET   695  git reset HEAD~7
+2020 Mar 12 Thu 09:20:57 EDT test1 /home/hltcoe/rwicks/ersatz/ET   696  git reset HEAD~6
+2020 Mar 12 Thu 09:20:59 EDT test1 /home/hltcoe/rwicks/ersatz/ET   697  git reset HEAD~5
+2020 Mar 12 Thu 09:21:02 EDT test1 /home/hltcoe/rwicks/ersatz/ET   698  git reset HEAD~4
+2020 Mar 12 Thu 09:21:05 EDT test1 /home/hltcoe/rwicks/ersatz/ET   699  git reset HEAD~5
+2020 Mar 12 Thu 09:21:07 EDT test1 /home/hltcoe/rwicks/ersatz/ET   700  git reset HEAD~4
+2020 Mar 12 Thu 09:21:08 EDT test1 /home/hltcoe/rwicks/ersatz/ET   701  git reset HEAD~3
+2020 Mar 12 Thu 09:21:09 EDT test1 /home/hltcoe/rwicks/ersatz/ET   702  git reset HEAD~2
+2020 Mar 12 Thu 09:21:10 EDT test1 /home/hltcoe/rwicks/ersatz/ET   703  git reset HEAD~1

@@ -1,1 +1,4 @@
-models/*
+.history_coe.local.ET
+.data/*
+.ipynb_checkpoints
+__pycache__

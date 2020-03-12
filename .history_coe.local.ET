@@ -228,3 +228,8 @@
 2020 Mar 12 Thu 09:21:08 EDT test1 /home/hltcoe/rwicks/ersatz/ET   701  git reset HEAD~3
 2020 Mar 12 Thu 09:21:09 EDT test1 /home/hltcoe/rwicks/ersatz/ET   702  git reset HEAD~2
 2020 Mar 12 Thu 09:21:10 EDT test1 /home/hltcoe/rwicks/ersatz/ET   703  git reset HEAD~1
+2020 Mar 12 Thu 09:21:15 EDT test1 /home/hltcoe/rwicks/ersatz/ET   704  git add -A
+2020 Mar 12 Thu 09:21:22 EDT test1 /home/hltcoe/rwicks/ersatz/ET   705  git commit -m "transformer based ersatz"
+2020 Mar 12 Thu 09:21:28 EDT test1 /home/hltcoe/rwicks/ersatz/ET   706  ls
+2020 Mar 12 Thu 09:21:49 EDT test1 /home/hltcoe/rwicks/ersatz/ET   707  git push -u origin transformer
+2020 Mar 12 Thu 09:22:38 EDT test1 /home/hltcoe/rwicks/ersatz/ET   708  vim .gitignore

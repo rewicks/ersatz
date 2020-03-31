@@ -21,7 +21,10 @@ class EvalModel():
             self.device = torch.device("cuda") 
             self.model = self.model.to(self.device)  
             self.vocab = self.model.vocab
-            self.context_size = self.model.context_size
+            self.left_context_size = self.model.left_context_size
+            self.right_context_size = self.model.right_context_size
+            self.context_size = self.left_context_size + self.right_context_size + 1
+            self.spm_path = spm_path
             if torch.cuda.device_count() > 1:
                 self.model = torch.nn.DataParallel(self.model)
         else:
@@ -116,7 +119,10 @@ class EvalModel():
         return batches
 
     def parallel_evaluation(self, input_path, batch_size):
+        start = time.time()
+        logging.info('starting batchify...')
         batches = self.batchify(input_path, batch_size)
+        logging.info(f'batching took {time.time()-start} seconds')
         eos = []
         for batch in batches:
             data = batch.contexts.to(self.device)

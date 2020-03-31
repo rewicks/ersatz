@@ -5,6 +5,7 @@ import torch
 import random
 import sentencepiece as spm
 
+PUNCTUATION = ['`', '!', '\'', '"', ';', ':', '.', '?', ','] 
 #def other_split_train_file(file_path, eos=False, context_size=4):
 #    content = open(file_path).read()
 #    content = content.replace('\n', ' <eos> ')
@@ -23,7 +24,7 @@ import sentencepiece as spm
 #            labels.append(window[context_size])
 #            right_contexts.append(window[context_size+1:])
         
-def page_generator(file_path):
+def page_generator(file_path, sliding_window=10):
     page = ''
     with open(file_path) as input_file:
         for line in input_file:
@@ -35,7 +36,7 @@ def page_generator(file_path):
                 yield page
                 page = ''
 
-def split_train_file(file_path, eos=False, left_context_size=5, right_context_size=5, eos_percent=0.25, sub_sample_percent=0.1 ):
+def split_train_file(file_path, eos=False, left_context_size=5, right_context_size=5, eos_percent=0.25, sub_sample_percent=0.1, punc_percent=0.0):
     labels = []
 
     #content = open(file_path).read()
@@ -45,14 +46,14 @@ def split_train_file(file_path, eos=False, left_context_size=5, right_context_si
     random.seed(14)
 
     output_path = file_path.split('/')[-1].split('.')
-    output_path = output_path[:-1] + [f'{left_context_size}-{right_context_size}-context'] + output_path[-1:]
+    output_path = output_path[:-1] + [f'{left_context_size}-{right_context_size}-context.p{punc_percent}'] + output_path[-1:]
     output_path = os.path.join('/'.join(file_path.split('/')[:-1]),'.'.join(output_path))
 
-    
     with open(output_path, 'w') as f:
         for content in page_generator(file_path):
             for index, word in enumerate(content):
                 random_number = random.random()
+                punc_number = random.random()
                 if (word != '<eos>' and random_number <= (eos_percent*sub_sample_percent)) or (word == '<eos>' and random_number < sub_sample_percent):
                     if ((content[index-1] != '<eos>') or eos) and (index < len(content)-1 and '\u2581' in content[index+1]):
                         left_temp = []
@@ -63,7 +64,26 @@ def split_train_file(file_path, eos=False, left_context_size=5, right_context_si
                             if temp_index >= 0:
                                 if not eos:
                                     if content[temp_index] != '<eos>':
-                                        left_temp.append(content[temp_index])
+                                        if word == '<eos>' and punc_number < punc_percent and len(left_temp) == 0 and content[temp_index][-1] in PUNCTUATION:
+                                            current_word = content[temp_index]
+                                            stripped_word = list(current_word[::-1])
+                                            #if current_word[-1] == '"':
+                                            #    import pdb; pdb.set_trace()
+                                            for letter in stripped_word.copy():
+                                                if letter in PUNCTUATION:
+                                                    stripped_word.pop(0)
+                                                else:
+                                                    stripped_word = ''.join(stripped_word)[::-1]
+                                                    print(current_word + '\t' + stripped_word)
+                                                    break
+                                            if len(stripped_word) > 0:
+                                                #if type(stripped_word) is not str:
+                                                #    import pdb
+                                                #    pdb.set_trace()
+                                                print(stripped_word)
+                                                left_temp.append(stripped_word)
+                                        else:
+                                            left_temp.append(content[temp_index])
                                 else:
                                     left_temp.append(content[temp_index])
                             else:
@@ -143,10 +163,11 @@ if __name__ == '__main__':
     parser.add_argument('--left-size', type=int)
     parser.add_argument('--right-size', type=int)
     parser.add_argument('--word-frequency', type=float)
-    
+    parser.add_argument('--punc-frequency', type=float)   
+ 
     args = parser.parse_args()
     
-    split_train_file(args.path, left_context_size=args.left_size, right_context_size=args.right_size, eos_percent=args.word_frequency)
+    split_train_file(args.path, left_context_size=args.left_size, right_context_size=args.right_size, eos_percent=args.word_frequency, punc_percent=args.punc_frequency)
     #left, right, labels = split_train_file(args.path, left_context_size=args.left_size, right_context_size=args.right_size, eos_percent=args.word_frequency)
     #write_training_files(args.path, left, right, labels, left_context_size=args.left_size, right_context_size=args.right_size)
 

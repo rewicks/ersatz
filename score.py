@@ -4,11 +4,13 @@ def stream(path):
     content = open(path).read()
     while content != content.replace('  ', ' '):
         content = content.replace('  ', ' ')
+    content = content.replace(u'\u00a0', ' ')
     content = content.replace(' ', ' <mos> ')
     content = content.replace('\n', ' <eos> ')
     f = content.split()    
     for index, word in enumerate(f):
         if word == '<eos>' or word == '<mos>':
+            #print(f[index-10:index+1])
             yield word, f[index-10:index+10]
 
 def score(split_path):
@@ -25,8 +27,9 @@ def score(split_path):
     EOF = False
     while (not EOF):
         try:
+            #print('correct')
             c, debug_context = next(correct)
-            
+            #print('split')
             s, context = next(split)
         
             if c == '<eos>' and s == '<eos>':

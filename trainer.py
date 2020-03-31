@@ -168,7 +168,7 @@ class ErsatzTrainer():
         self.model.train()
         return retVal
 
-    def run_epoch(self, epoch, writer, batch_size, log_interval, validation_interval, results, best_model, min_epochs = 10, validation_threshold=50):
+    def run_epoch(self, epoch, writer, batch_size, log_interval, validation_interval, results, best_model, min_epochs = 10, validation_threshold=10):
 
         eos_ind = self.training_set.vocab.embed_word('<eos>')
         
@@ -263,6 +263,7 @@ if __name__ == '__main__':
     parser.add_argument('--nlayers', type=int)
     parser.add_argument('--log_interval', type=int)
     parser.add_argument('--validation_interval', type=int)
+    parser.add_argument('--early_stopping', type=int, default=10)
 
     args = parser.parse_args()
     
@@ -279,7 +280,7 @@ if __name__ == '__main__':
     for epoch in range(args.max_epochs):
         status['epoch'] = epoch
         trainer.model.train()
-        res, status, best_model = trainer.run_epoch(epoch, writer, args.batch_size, args.log_interval, args.validation_interval, results, best_model, min_epochs=args.min_epochs)
+        res, status, best_model = trainer.run_epoch(epoch, writer, args.batch_size, args.log_interval, args.validation_interval, results, best_model, min_epochs=args.min_epochs, validation_threshold=args.early_stopping)
         if res == 0 and epoch > args.min_epochs:
             break
         trainer.scheduler.step()

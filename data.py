@@ -1,6 +1,6 @@
 import os
 import torch
-import Tokenizer
+#import Tokenizer
 from collections import Counter
 
 
@@ -27,7 +27,7 @@ class Dictionary(object):
 class TrainingCorpus(object):
     def __init__(self, training_path, tokenizer_path):
         self.dictionary = Dictionary()
-        tokenizer = Tokenizer.SPM(tokenizer_path)
+        #tokenizer = Tokenizer.SPM(tokenizer_path)
         self.train, self.valid = self.tokenize(training_path, tokenizer)
         
 

@@ -32,7 +32,6 @@ def score(split_path):
             #print('split')
             s, context = next(split)
        
-            print(f"Corr: {' '.join(debug_context)}\nPred: {' '.join(context)}\n\n") 
             if c == '<eos>' and s == '<eos>':
                 results[0][0] += 1
             elif c == '<eos>' and s != '<eos>':

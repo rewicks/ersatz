@@ -7,32 +7,38 @@ from collections import namedtuple
 import random
 import os
      
-class TransformerModel(nn.Module):
+class ErsatzTransformer(nn.Module):
     
-    def __init__(self, vocab, left_context_size, right_context_size, embed_size=512, nhead=8, num_layers=2):
-        super(TransformerModel, self).__init__()
+    def __init__(self, vocab, left_context_size, right_context_size, embed_size=512, nhead=8, num_layers=2, t_dropout=0.1, e_dropout=0.5):
+        super(ErsatzTransformer, self).__init__()
 
         # each layer of the transformer
-        encoder_layer = nn.TransformerEncoderLayer(embed_size, nhead)
+        encoder_layer = nn.TransformerEncoderLayer(embed_size, nhead, dropout=t_dropout)
         # build the transformer with n of the previous layers
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         
         # embeds the input into a embed_size dimensional space
         self.src_emb = nn.Embedding(len(vocab), embed_size)
+        self.embed_dropout = nn.Dropout(e_dropout)
+        
         # uses sine function to get positional embeddings
-        self.pos_embed = PositionalEncoding(embed_size=embed_size, max_len=(left_context_size + right_context_size+1))
+        self.pos_embed = PositionalEncoding(embed_size=embed_size, dropout=e_dropout, max_len=(left_context_size + right_context_size+1))
 
         # vocab; includes stoi and itos look ups
         self.vocab = vocab
         self.embed_size = embed_size
+        self.nhead = nhead
+        self.num_layers = num_layers
+        self.t_dropout = t_dropout
+        self.e_dropout = e_dropout
         self.left_context_size = left_context_size
         self.right_context_size = right_context_size        
         self.max_size = self.left_context_size + self.right_context_size + 1
 
         # takes flattened output of last layer and maps to vocabulary size
-        print(f'vocab size: {len(self.vocab)}')
-        print(f'embed_size: {self.embed_size}')
-        print(f'max_size: {self.max_size}')
+        #print(f'vocab size: {len(self.vocab)}')
+        #print(f'embed_size: {self.embed_size}')
+        #print(f'max_size: {self.max_size}')
         self.generator = Generator(self.embed_size*self.max_size, len(self.vocab))
 
     def forward(self, src):
@@ -40,6 +46,7 @@ class TransformerModel(nn.Module):
         embed = self.pos_embed(self.src_emb(src) * math.sqrt(self.embed_size))
         output = self.encoder(embed).transpose(0,1)
         output = output.reshape(output.size()[0], -1)
+        output = self.embed_dropout(output)
         return self.generator(output)
 
     def predict_word(self, src):
@@ -51,7 +58,7 @@ class Generator(nn.Module):
     # could change this to mean-pool or max pool
     def __init__(self, embed_size, vocab_size):
         super(Generator, self).__init__()
-        self.proj = nn.Linear(embed_size, vocab_size)
+        self.proj = nn.Linear(embed_size, 2)
     
     def forward(self, x):
         return F.log_softmax(self.proj(x), dim=-1)

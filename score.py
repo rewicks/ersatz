@@ -1,130 +1,80 @@
-import argparse, numpy
+import argparse
+from determiner import *
 
-def stream(path):
-    content = open(path).read()
-    while content != content.replace('  ', ' '):
-        content = content.replace('  ', ' ')
-    content = content.replace(u'\u00a0', ' ')
-    content = content.replace(' ', ' <mos> ')
-    content = content.replace('\n', ' <eos> ')
-    f = content.split()    
-    for index, word in enumerate(f):
-        if word == '<eos>' or word == '<mos>':
-            #print(f[index-10:index+1])
-            yield word, f[index-10:index+10]
-
-def score(split_path):
-    language = split_path.split('/')[1]
-    correct_path = '/home/hltcoe/rwicks/ersatz/data/raw/' + language + '/test/' + '/'.join(split_path.split('/')[2:])   
-
-    correct = stream(correct_path)
-    split = stream(split_path)
-
-    results = numpy.zeros((2,2))
-    type_one = open('type_one.txt', 'a+')
-    type_two = open('type_two.txt', 'a+')
-
-    EOF = False
-    while (not EOF):
-        try:
-            #print('correct')
-            c, debug_context = next(correct)
-            #print('split')
-            s, context = next(split)
-        
-            if c == '<eos>' and s == '<eos>':
-                results[0][0] += 1
-            elif c == '<eos>' and s != '<eos>':
-                results[0][1] += 1
-                type_two.write('Corr: ' + ' '.join(debug_context) + '\nPred: ' + ' '.join(context) + '\n\n')
-            elif c != '<eos>' and s == '<eos>':
-                results[1][0] += 1
-                type_one.write('Corr: ' + ' '.join(debug_context) + '\nPred: ' + ' '.join(context) + '\n\n')
-            else:
-                results[1][1] += 1
-        except:
-            EOF = True
-    return results
-
-'''
-def score(correct_path, split_path):
-    correct = stream(correct_path)
-    split = stream(split_path)
-
-    results = numpy.zeros((2,2))
-    type_one = open('type_one.txt', 'a+')
-    type_two = open('type_two.txt', 'a+')
-
-    type_one.write(split_path + '\n')
-    type_two.write(split_path + '\n')
-    context = ['' for x in range(50)]
-    debug_context = ['' for x in range(50)]
-    EOF = False
-    while (not EOF):
-        try:
-            c = next(correct)
-            debug_context.pop(0)
-            debug_context.append(c)
-            while c != ' ' and c != '\n':
-                c = next(correct)
-                debug_context.pop(0)
-                debug_context.append(c)
-            
-            s = next(split)            
-            context.pop(0)
-            context.append(s)
-            while s != ' ' and s != '\n':
-                s = next(split)
-                context.pop(0)
-                context.append(s)            
-
-            if c == '\n' and s == '\n':
-                results[0][0] += 1
-            elif c == '\n' and s != '\n':
-                results[0][1] += 1
-                type_two.write(''.join(context) + '\n\n')
-            elif c != '\n' and s == '\n':
-                results[1][0] += 1
-                type_one.write(''.join(context) + '\n')
-            else:
-                results[1][1] += 1
-        except:
-            EOF = True
-    return results
-'''
-if __name__ == '__main__':
+def score(target_file, pred_file, det):
+    pred_content = open(pred_file).read()
+    pred_content = pred_content.replace(' ', ' <mos> ')
+    pred_content = pred_content.replace('\n', ' <eos> ')
     
+    target_content = open(target_file).read()
+    target_content = target_content.replace(' ', ' <mos> ')
+    target_content = target_content.replace('\n', ' <eos> ')
+
+    pred_content = pred_content.split()
+    target_content = target_content.split()
+    
+    correct_eos = 0
+    incorrect_eos = 0
+    correct_mos = 0
+    incorrect_mos = 0
+    index = 0
+    
+    type_one = []
+    type_two = []
+
+    for pred, target in zip(pred_content, target_content):
+        if index != len(pred_content)-1 and target in ['<mos>', '<eos>']:
+            try:
+                assert(target_content[index-1]==pred_content[index-1])
+                left_context = target_content[index-1]
+                right_context = ' ' + target_content[index+1]
+                if det(left_context, right_context):
+                    if target == '<eos>':
+                        if pred == '<eos>':
+                            correct_eos += 1
+                        else:
+                            context = ' '.join(target_content[max(0, index-10):min(index, len(target_content)-1)]).replace('<eos>', '').replace('<mos>','') + ' <mos> ' + ' '.join(target_content[index:min(len(target_content)-1, index+10)]).replace('<eos>', '').replace('<mos>','')
+                            type_two.append(context)
+                            incorrect_eos += 1
+                    else:
+                        if pred == '<eos>':
+                            incorrect_mos += 1
+                            context = ' '.join(target_content[max(0, index-10):min(index, len(target_content)-1)]).replace('<eos>', '').replace('<mos>','') + ' <eos> ' + ' '.join(target_content[index:min(len(target_content)-1, index+10)]).replace('<eos>', '').replace('<mos>','')
+                            type_one.append(context)
+                        else:
+                            correct_mos += 1
+            except Exception as e:
+                print(e)
+                print(f"{' '.join(target_content[index-5:index+5])}\t{' '.join(pred_content[index-5:index+5])}")
+                exit()
+        index += 1
+                  
+    total = correct_eos + incorrect_eos + correct_mos + incorrect_mos
+    accuracy = (correct_eos+correct_mos)/total
+    recall = (correct_eos)/(correct_eos+incorrect_eos)
+    try:
+        precision = (correct_eos)/(correct_eos+incorrect_mos)
+    except:
+        precision = 'n/a'
+    try:
+        f1 = (2*precision*recall)/(precision+recall)
+    except:
+        f1 = 'n/a'
+    print(f'Accuracy {accuracy*100:.2f}')
+    print(f'Recall {recall*100:.2f}')
+    print(f'Precision {precision*100:.2f}')
+    print(f'F1 {f1*100:.2f}')
+    for one in type_one:
+        print(one)
+    for two in type_two:
+        print(two)
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    #parser.add_argument('map_file')
-    parser.add_argument('split_files', nargs='*')
-
+    parser.add_argument('rubric_file_path', type=str)
+    parser.add_argument('pred_file_path', type=str)
+    
     args = parser.parse_args()
-
-    results = numpy.zeros((2,2))
-
-    scores = open('scores.txt', 'a+')
-
-    for fi in args.split_files:
-        r = score(fi)
-        print(fi)
-        print(r)
-        prec = (r[0][0]/(r[0][0]+r[1][0]))*100
-        recall = (r[0][0]/(r[0][0]+r[0][1]))*100
-        f1 = 2*(prec*recall)/(prec+recall)
-        print(f'{fi}\t{prec:.1f},{recall:.1f},{f1:.1f}')
-        #print(f'Recall : {recall}')
-        #print(f'Precision : {prec}')
-        #print(f'Accuracy : {((r[0][0]+r[1][1])/(r[0][0] + r[1][0] + r[1][1]))*100}')
-        results += r
-        #(f'{fi}\t{prec:.1f}\t{recall:.1f}\t{f1:.1f}') 
-        scores.write(f'{fi}\t{prec:.1f}\t{recall:.1f}\t{f1:.1f}\n')
-    print("Overall Results:")
-    print(results)
-    acc = (results[0][0]+results[1][1])
-    acc /= (results[0][0]+results[0][1]+results[1][0]+results[1][1])
-
-    prec = (results[0][0]/(results[0][0] + results[1][0]))
-    recall = (results[0][0]/(results[0][0]+results[0][1]))
-    print(f'Accuracy (character level--heavily inflated): {acc}')
-    print(f'Precision: {prec}')
-    print(f'Recall: {recall}') 
+    
+    det = PunctuationSpace()
+    score(args.rubric_file_path, args.pred_file_path, det)

@@ -3,26 +3,9 @@ import os
 from collections import namedtuple
 import torch
 import random
-import sentencepiece as spm
+#import sentencepiece as spm
 
 PUNCTUATION = ['`', '!', '\'', '"', ';', ':', '.', '?', ','] 
-#def other_split_train_file(file_path, eos=False, context_size=4):
-#    content = open(file_path).read()
-#    content = content.replace('\n', ' <eos> ')
-#    content = content.split()
-#    
-#    window = ['<PAD>' for x in range(context_size)] + [content[:context_size+1]]
-#    left_contexts = [window[:context_size]]
-#    labels = [window[context_size]]
-#    right_contexts = [window[context_size+1:]]
-#
-#    for index, word in enumerate(content):
-#        if word != '<eos>' or eos:
-#            window.pop(0)
-#            window.append(word)
-#            left_contexts.append(window[:context_size])
-#            labels.append(window[context_size])
-#            right_contexts.append(window[context_size+1:])
         
 def page_generator(file_path, sliding_window=10):
     page = ''
@@ -31,120 +14,106 @@ def page_generator(file_path, sliding_window=10):
             if line != '\n':
                 page += line
             else:
+                page = page.replace(' \u2581', ' <mos> \u2581')
                 page = page.replace('\n', ' <eos> ')
                 page = page.split()
                 yield page
                 page = ''
 
-def split_train_file(file_path, eos=False, left_context_size=5, right_context_size=5, eos_percent=0.25, sub_sample_percent=0.1, punc_percent=0.0):
-    labels = []
+    page = page.replace(' \u2581', ' <mos> \u2581')
+    page = page.replace('\n', ' <eos> ')
+    page = page.split()
+    yield page
 
-    #content = open(file_path).read()
-    #content = content.replace('\n', ' <eos> ')
-    #content = content.split()
+def split_train_file(file_paths, output_path=None, eos=False, left_context_size=5, right_context_size=5, eos_percent=0.25, sub_sample_percent=0.1, punc_percent=0.0):
+    labels = []
 
     random.seed(14)
 
-    output_path = file_path.split('/')[-1].split('.')
-    output_path = output_path[:-1] + [f'{left_context_size}-{right_context_size}-context.p{punc_percent}'] + output_path[-1:]
-    output_path = os.path.join('/'.join(file_path.split('/')[:-1]),'.'.join(output_path))
+    if output_path is None:
+        output_path = file_path.split('/')[-1].split('.')
+        output_path = output_path[:-1] + [f'{left_context_size}-{right_context_size}-context.p{punc_percent}'] + output_path[-1:]
+        output_path = os.path.join('/'.join(file_path.split('/')[:-1]),'.'.join(output_path))
 
     with open(output_path, 'w') as f:
-        for content in page_generator(file_path):
-            for index, word in enumerate(content):
-                random_number = random.random()
-                punc_number = random.random()
-                if (word != '<eos>' and random_number <= (eos_percent*sub_sample_percent)) or (word == '<eos>' and random_number < sub_sample_percent):
-                    if ((content[index-1] != '<eos>') or eos) and (index < len(content)-1 and '\u2581' in content[index+1]):
-                        left_temp = []
-                        right_temp = []
-                        # Get the left context
-                        temp_index = index - 1
-                        while (len(left_temp) < left_context_size):
-                            if temp_index >= 0:
-                                if not eos:
-                                    if content[temp_index] != '<eos>':
-                                        if word == '<eos>' and punc_number < punc_percent and len(left_temp) == 0 and content[temp_index][-1] in PUNCTUATION:
-                                            current_word = content[temp_index]
-                                            stripped_word = list(current_word[::-1])
-                                            #if current_word[-1] == '"':
-                                            #    import pdb; pdb.set_trace()
-                                            for letter in stripped_word.copy():
-                                                if letter in PUNCTUATION:
-                                                    stripped_word.pop(0)
-                                                else:
-                                                    stripped_word = ''.join(stripped_word)[::-1]
-                                                    print(current_word + '\t' + stripped_word)
-                                                    break
-                                            if len(stripped_word) > 0:
-                                                #if type(stripped_word) is not str:
-                                                #    import pdb
-                                                #    pdb.set_trace()
-                                                print(stripped_word)
-                                                left_temp.append(stripped_word)
-                                        else:
-                                            left_temp.append(content[temp_index])
+        for file_path in file_paths:
+            for content in page_generator(file_path):
+                for index, word in enumerate(content):
+                    random_number = random.random()
+                    punc_number = random.random()
+                    if (word == '<mos>' and random_number <= (eos_percent*sub_sample_percent)) or (word == '<eos>' and random_number <= sub_sample_percent):
+                        if index < len(content)-1 and '\u2581' in content[index+1]:
+                            left_temp = []
+                            right_temp = []
+                            
+                            # Get the left context
+                            temp_index = index-1
+                            while (len(left_temp) < left_context_size):
+                                if temp_index >= 0:
+                                    if content[temp_index] not in ['<eos>', '<mos>']:
+                                        left_temp.append(content[temp_index])
                                 else:
-                                    left_temp.append(content[temp_index])
-                            else:
-                                left_temp.append('<PAD>')
-                            temp_index -= 1
-        
-                        left_temp.reverse()
+                                    left_temp.append('<pad>')
+                                temp_index -= 1
+                            left_temp.reverse()
+                    
+                            label = word
 
-                        # Get the label
-                        label = word
-                        #labels.append(word)
+                            temp_index = index + 1
+                            while (len(right_temp) < right_context_size):
+                                if temp_index < len(content): 
+                                    if content[temp_index] not in ['<eos>', '<mos>']:
+                                        right_temp.append(content[temp_index])
+                                else:
+                                    right_temp.append('<pad>')
+                                temp_index += 1
 
-                        # Get the right context
-                        temp_index = index + 1
-                        while (len(right_temp) < right_context_size):
-                            if temp_index < len(content):
-                                if content[temp_index] != '<eos>':
-                                    right_temp.append(content[temp_index])
-                            else:
-                                right_temp.append('<PAD>') 
-                            temp_index += 1
-                        f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
+                            f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
+
+
 
 def split_test_file(file_path, left_context_size, right_context_size, spm_path='/home/hltcoe/rwicks/ersatz/exp/02/models/spm.model'):
-    left_contexts = []
-    right_contexts = []
+    docs = []
 
-    sp = spm.SentencePieceProcessor()
-    sp.Load(spm_path)
+    #sp = spm.SentencePieceProcessor()
+    #sp.Load(spm_path)
 
-    content = open(file_path).read()
-    content = sp.EncodeAsPieces(content)
-
-    for index, word in enumerate(content):
-        if '\u2581' in word:
+    content = open(file_path).read().split('\n')
+    #content = sp.EncodeAsPieces(content)
+    for c in content:
+        c = c.strip().split()
+        left_contexts = []
+        right_contexts = []
+        for index, word in enumerate(c, 0):
             left_temp = []
             right_temp = []
             # Get the left context
             temp_index = index - 1
-            while (len(left_temp) < left_context_size):
-                if temp_index >= 0:
-                    left_temp.append(content[temp_index])
-                else:
-                    left_temp.append('<PAD>')
-                temp_index -= 1
-        
+            try:
+                while (len(left_temp) < left_context_size):
+                    if temp_index >= 0:
+                        left_temp.append(c[temp_index])
+                    else:
+                        left_temp.append('<pad>')
+                    temp_index -= 1
+            except:
+                import pdb; pdb.set_trace()       
+ 
             left_temp.reverse()
             left_contexts.append(left_temp)
 
             # Get the right context
             temp_index = index
             while (len(right_temp) < right_context_size):
-                if temp_index < len(content):
-                    right_temp.append(content[temp_index])
+                if temp_index < len(c):
+                    right_temp.append(c[temp_index])
                 else:
-                    right_temp.append('<PAD>') 
+                    right_temp.append('<pad>') 
                 temp_index += 1
 
             right_contexts.append(right_temp)
-
-    return left_contexts, right_contexts
+        docs.append((left_contexts, right_contexts))
+    return docs
 
 
 
@@ -159,29 +128,33 @@ def write_training_files(file_path, left_contexts, right_contexts, labels, left_
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('path')
+    parser.add_argument('paths', nargs='*')
+    parser.add_argument('--output_path', type=str)
     parser.add_argument('--left-size', type=int)
     parser.add_argument('--right-size', type=int)
     parser.add_argument('--word-frequency', type=float)
     parser.add_argument('--punc-frequency', type=float)   
- 
+    parser.add_argument('--subsample-frequency', type=float) 
     args = parser.parse_args()
-    
-    split_train_file(args.path, left_context_size=args.left_size, right_context_size=args.right_size, eos_percent=args.word_frequency, punc_percent=args.punc_frequency)
+    split_train_file(args.paths, output_path=args.output_path, left_context_size=args.left_size, right_context_size=args.right_size, eos_percent=args.word_frequency, punc_percent=args.punc_frequency, sub_sample_percent=args.subsample_frequency)
     #left, right, labels = split_train_file(args.path, left_context_size=args.left_size, right_context_size=args.right_size, eos_percent=args.word_frequency)
     #write_training_files(args.path, left, right, labels, left_context_size=args.left_size, right_context_size=args.right_size)
 
-Batch = namedtuple("Batch", "contexts labels left_size right_size")
+Batch = namedtuple("Batch", "contexts labels")
 
 class Vocabulary():
 
-    def __init__(self, file_path, hole=True):
-        #self.itos = ['<HOLE>', '<PAD>']
-        #self.stoi = {'<UNK>': 0, '<HOLE>': 1, '<PAD>': 2}
-        self.itos = ['<unk>', '<hole>', '<pad>']
-        self.stoi = {'<unk>': 0, '<hole>': 1, '<pad>': 2}
+    def __init__(self, vocab_path=None, hole=True):
+        if vocab_path is None:
+            self.itos = ['<eos>', '<mos>', '<unk>', '<hole>', '<pad>']
+            self.stoi = {'<eos>': 0, '<mos>': 1, '<unk>': 2, '<hole>': 3, '<pad>': 4}
+        else:
+            self.stoi = json.load(open(vocab_path))
+            self.itos = ['' for x in self.stoi]
+            for key in self.stoi:
+                self.itos[self.stoi[key]] = key
+             
         self.hole = hole
-        self.build_vocab(file_path)
 
     def __len__(self):
         return len(self.itos)
@@ -198,10 +171,15 @@ class Vocabulary():
             self.itos.append(word)
     
     def embed_word(self, word):
-        return self.stoi.get(word, 0)
+        return self.stoi.get(word, 2)
 
     def get_word(self, embedding):
         return self.itos[embedding]
+
+    def detokenize(self, input_string):
+        input_string = input_string.replace(' ', '')
+        input_string = input_string.replace('\u2581', ' ')
+        return input_string
 
     def string_to_tensor(self, sequences):
         arr = []
@@ -213,12 +191,18 @@ class Vocabulary():
         return torch.tensor(arr)
 
     def tensor_to_string(self, tensors):
-        output = []
-        for tens in tensors:
+        if len(tensors.shape) > 1:
+            output = []
+            for tens in tensors:
+                o = []
+                for t in tens:
+                    o.append(self.get_word(t))
+                output.append(' '.join(o))
+        else:
             o = []
-            for t in tens:
+            for t in tensors:
                 o.append(self.get_word(t))
-            output.append(' '.join(o))
+            output = ' '.join(o)
         return output
 
     def context_to_tensor(self, contexts):
@@ -230,85 +214,95 @@ class Vocabulary():
                 tens.append([self.embed_word(l)])
             if self.hole:
                 #print('appending hole')
-                tens.append([self.embed_word('<HOLE>')])
+                tens.append([self.embed_word('<hole>')])
             for r in right:
                 tens.append([self.embed_word(r)])
             con_arr.append(tens)
             lab_arr.append(self.embed_word(label))
         return torch.tensor(con_arr), torch.tensor(lab_arr)
 
-class ErsatzTrainDataset():
-    def __init__(self, train_path, device, batch_size, vocabulary_path, transform=None, hole=False, sub_size=25000000):
-        self.vocab = Vocabulary(vocabulary_path)
+class ErsatzDataset():
+    def __init__(self, data_path, device, left_context_size=15, right_context_size=5, vocabulary_path=None, vocab=None, transform=None, hole=False, sub_size=25000000):
+        if vocabulary_path is not None:
+            self.vocab = Vocabulary(vocabulary_path=vocabulary_path)
+        elif vocab is not None:
+            self.vocab = vocab
+        else:
+            self.vocab = Vocabulary()
+            self.vocab.build_vocab(data_path)
         self.device = device
         self.size = 0
         self.sub_size = sub_size
     
-        if not os.path.exists(train_path):
+        if not os.path.exists(data_path):
             raise Exception("path does not exist")
+
+        self.left_context_size = left_context_size
+        self.right_context_size = right_context_size
         
-        self.preprocess(train_path)
-        #self.file_count = 55
-        #self.left_context_size = 5
-        #self.right_context_size = 5
-        self.train_path = 'preprocess/' + train_path.split('/')[-1]
-        self.batchify(batch_size)
+        #self.preprocess(data_path)
+        self.data_path = data_path
+        #self.data_path = 'preprocess/' + data_path.split('/')[-1]
+        #self.batchify(batch_size)
         
 
     def __len__(self):
         return self.size
 
-    def preprocess(self, train_path):
-        output_lines = []
-        if not os.path.isdir('preprocess'):
-            os.mkdir('preprocess')
-        output_path = 'preprocess/' + train_path.split('/')[-1]
-        self.file_count = 0
-        with open(train_path) as f:
+    def batchify(self, batch_size):
+        data = []
+        batch_idx = 0
+        with open(self.data_path) as f:
             for line in f:
                 self.size += 1
-                output_lines.append(line.strip())
                 left, right, label = line.strip().split('|||')
-                #for word in left.strip().split():
-                #    self.vocab.add_word(word)
-                #for word in right.strip().split():
-                #    self.vocab.add_word(word)
-                #self.vocab.add_word(label.strip())
-                if len(output_lines) > self.sub_size:
-                    random.shuffle(output_lines)
-                    with open(f'{output_path}.{self.file_count}.processed', 'w') as f:
-                        f.write('\n'.join(output_lines))
-                        self.file_count += 1
-                    self.left_context_size = len(output_lines[0].split('|||')[0].strip().split())
-                    self.right_context_size = len(output_lines[0].split('|||')[1].strip().split())
-                    output_lines = []
-        #self.context_size = len(output_lines[0].split('|||')[0].strip().split())*2 + 1
+                data.append((left.strip().split(), right.strip().split(), label.strip()))
+                if len(data) >= batch_size:
+                    context, label = self.vocab.context_to_tensor(data)
+                    context = context.view(len(data), -1)
+                    label = label.view(len(data)) 
+                    yield batch_idx, Batch(context, label)
+                    batch_idx += 1
+                    data = []
 
-        if len(output_lines) > 0:
-            random.shuffle(output_lines)
-            with open(f'{output_path}.{self.file_count}.processed', 'w') as f:
-                f.write('\n'.join(output_lines))
-                self.file_count += 1
-
+            context, label = self.vocab.context_to_tensor(data)
+            context = context.view(len(data), -1)
+            label = label.view(len(data))
+            if len(data) > 0:
+                yield batch_idx, Batch(context, label)
+                batch_idx += 1
+    '''
     def batchify(self, bsz):
         #self.batches = []
         #data = []
+        batch_idx = 0
+        
         for i in range(self.file_count):
             data = []
             batches = []
-            with open(f'{self.train_path}.{i}.processed') as f:
+            with open(f'{self.data_path}.{i}.processed') as f:
                 for index, line in enumerate(f):
-                    if len(data) == bsz:
+                    if len(data) >= bsz:
                         context, label = self.vocab.context_to_tensor(data)
                         context = context.view(bsz, -1)
                         label = label.view(bsz)
-                        batches.append(Batch(context, label, self.left_context_size, self.right_context_size))
+                        yield batch_idx, Batch(context, label, self.left_context_size, self.right_context_size)
+                        batch_idx += 1
+                        #batches.append(Batch(context, label, self.left_context_size, self.right_context_size))
                         data = []
                     else:
                         left, right, label = line.strip().split('|||')
                         data.append((left.strip().split(), right.strip().split(), label.strip()))
-            torch.save(batches, f'{self.train_path}.{i}.bin')
 
+            context, label = self.vocab.context_to_tensor(data)
+            context = context.view(len(data), -1)
+            label = label.view(len(data))
+            if len(data) > 0:
+                yield batch_idx, Batch(context, label, self.left_context_size, self.right_context_size)
+                batch_idx += 1
+            #torch.save(batches, f'{self.data_path}.{i}.bin')
+        '''
+'''
 class ErsatzValidDataset():
     def __init__(self, valid_path, device, batch_size, vocab, transform=None, hole=False):
         self.vocab = vocab
@@ -357,4 +351,4 @@ class ErsatzValidDataset():
                 else:
                     left, right, label = line.strip().split('|||')
                     data.append((left.strip().split(), right.strip().split(), label.strip()))
-
+'''

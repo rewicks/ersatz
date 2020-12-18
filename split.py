@@ -13,6 +13,10 @@ logging.basicConfig(format="%(levelname)s : %(message)s", level=logging.INFO)
 
 Batch = namedtuple("Batch", "contexts labels indices")
 
+global_det = MultilingualPunctuation()
+#global_det = Split()
+#global_det = PunctuationSpace()
+
 def load_model(checkpoint_path):
     model_dict = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     model = ErsatzTransformer(model_dict['vocab'], model_dict['left_context_size'], model_dict['right_context_size'], embed_size=model_dict['embed_size'], nhead=model_dict['nhead'], t_dropout=model_dict.get('t_dropout', 0.1), e_dropout=model_dict.get('e_dropout', 0.5), num_layers=2)
@@ -200,7 +204,7 @@ if __name__ == '__main__':
     model = EvalModel(args.model_path)
     model.model.eval()
     start = time.time()
-    for output in model.parallel_evaluation(args.input, args.batch_size, det=Split()):
+    for output in model.parallel_evaluation(args.input, args.batch_size, det=global_det):
         output = output.split('\n')
         output = [o.strip() for o in output]
         print('\n'.join(output))

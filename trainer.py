@@ -14,8 +14,8 @@ import json
 logging.basicConfig(format="%(levelname)s : %(message)s", level=logging.INFO)
 
 #global_determiner = Split()
-#global_determiner = PunctuationSpace()
-global_determiner = MultilingualPunctuation()
+global_determiner = PunctuationSpace()
+#global_determiner = MultilingualPunctuation()
 
 
 class Results():
@@ -211,7 +211,21 @@ class ErsatzTrainer():
                             if p.item() == 1:
                                 retVal['inference_correct_mos'] += 1
                             else:
-                                retVal['inference_incorrect_eos'] += 1
+                                retVal['inference_incorrect_mos'] += 1
+
+        if retVal['inference_correct_eos'] + retVal['inference_incorrect_mos'] != 0:
+            retVal['inference_prec'] = retVal['inference_correct_eos']/(retVal['inference_correct_eos'] + retVal['inference_incorrect_mos'])
+        else:
+            retVal['inference_prec'] = 0
+        if retVal['inference_correct_eos'] + retVal['inference_incorrect_eos'] != 0:
+            retVal['inference_recall'] = retVal['inference_correct_eos']/(retVal['inference_correct_eos'] + retVal['inference_incorrect_eos'])
+        else:
+            retVal['inference_recall'] = 0
+        if retVal['inference_prec'] != 0 and retVal['inference_recall'] != 0:
+            retVal['inference_f1'] = 2*((retVal['inference_prec']*retVal['inference_recall'])/(retVal['inference_prec']+retVal['inference_recall']))
+        else:
+            retVal['inference_f1'] = 0
+
         retVal['inference_acc'] = (retVal['inference_correct_eos'] + retVal['inference_correct_mos'])/(retVal['inference_correct_eos'] + retVal['inference_correct_mos'] + retVal['inference_incorrect_eos'] + retVal['inference_incorrect_mos'])
         retVal['average_loss'] = retVal['total_loss']/retVal['num_pred']
         self.model.train()
@@ -275,7 +289,7 @@ class ErsatzTrainer():
                 #writer.add_scalar('Recall/valid', stats['recall'], time_mark)
                 #writer.add_scalar('F1/valid', stats['f1'], time_mark)
                 if best_model is not None:
-                    if stats['inference_acc'] > best_model['inference_acc']:
+                    if stats['inference_f1'] > best_model['inference_f1']:
                         save_model(self.model, os.path.join(self.output_path, 'checkpoint.best'))
                         best_model = stats
                         best_model['validation_num'] = status['validations']

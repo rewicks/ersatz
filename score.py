@@ -1,7 +1,7 @@
 import argparse
 from determiner import *
 
-def score(target_file, pred_file, det):
+def score(target_file, pred_file, det, rtl=False):
     pred_content = open(pred_file).read()
     pred_content = pred_content.replace(' ', ' <mos> ')
     pred_content = pred_content.replace('\n', ' <eos> ')
@@ -25,9 +25,14 @@ def score(target_file, pred_file, det):
     for pred, target in zip(pred_content, target_content):
         if index != len(pred_content)-1 and target in ['<mos>', '<eos>']:
             try:
+                if (target_content[index-1]!=pred_content[index-1]):
+                    print(index)
+                    print(target_content[index-1:index+1], pred_content[index-1:index+1])
                 assert(target_content[index-1]==pred_content[index-1])
                 left_context = target_content[index-1]
                 right_context = ' ' + target_content[index+1]
+                if rtl:
+                    left_context = left_context[::-1]
                 if det(left_context, right_context):
                     if target == '<eos>':
                         if pred == '<eos>':
@@ -62,8 +67,14 @@ def score(target_file, pred_file, det):
         f1 = 'n/a'
     print(f'Accuracy {accuracy*100:.2f}')
     print(f'Recall {recall*100:.2f}')
-    print(f'Precision {precision*100:.2f}')
-    print(f'F1 {f1*100:.2f}')
+    try:
+        print(f'Precision {precision*100:.2f}')
+    except:
+        print("Precision n/a")
+    try:
+        print(f'F1 {f1*100:.2f}')
+    except:
+        print("F1 n/a")
     for one in type_one:
         print(one)
     for two in type_two:
@@ -73,8 +84,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('rubric_file_path', type=str)
     parser.add_argument('pred_file_path', type=str)
-    
+    parser.add_argument('--rtl', action='store_true')   
+ 
     args = parser.parse_args()
     
-    det = PunctuationSpace()
-    score(args.rubric_file_path, args.pred_file_path, det)
+    #det = PunctuationSpace()
+    det = MultilingualPunctuation()
+    score(args.rubric_file_path, args.pred_file_path, det, rtl=args.rtl)

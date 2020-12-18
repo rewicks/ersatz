@@ -39,13 +39,13 @@ class ErsatzTransformer(nn.Module):
         #print(f'vocab size: {len(self.vocab)}')
         #print(f'embed_size: {self.embed_size}')
         #print(f'max_size: {self.max_size}')
-        self.generator = Generator(self.embed_size*self.max_size, len(self.vocab))
+        self.generator = Generator(self.embed_size, self.max_size, len(self.vocab))
 
     def forward(self, src):
         src = src.t()
         embed = self.pos_embed(self.src_emb(src) * math.sqrt(self.embed_size))
         output = self.encoder(embed).transpose(0,1)
-        output = output.reshape(output.size()[0], -1)
+        #output = output.reshape(output.size()[0], -1)
         output = self.embed_dropout(output)
         return self.generator(output)
 
@@ -56,11 +56,19 @@ class ErsatzTransformer(nn.Module):
 class Generator(nn.Module):
     
     # could change this to mean-pool or max pool
-    def __init__(self, embed_size, vocab_size):
+    def __init__(self, embed_size, max_size, vocab_size):
         super(Generator, self).__init__()
-        self.proj = nn.Linear(embed_size, 2)
-    
+        hidden = max_size * ((embed_size-1)//2)
+        self.pooling_layer = nn.MaxPool1d(4, stride=2)
+        self.lin = nn.Linear(hidden, hidden)
+        self.activation = nn.LogSigmoid()
+        self.proj = nn.Linear(hidden, 2)   
+
     def forward(self, x):
+        x = self.pooling_layer(x)
+        x = x.reshape(x.size()[0], -1)
+        x = self.lin(x)
+        x = self.activation(x)
         return F.log_softmax(self.proj(x), dim=-1)
 
 

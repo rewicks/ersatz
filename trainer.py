@@ -91,7 +91,7 @@ class Results():
 
 def load_model(checkpoint_path):
     model_dict = torch.load(checkpoint_path)
-    model = ErsatzTransformer(model_dict['vocab'], model_dict['left_context_size'], model_dict['right_context_size'], embed_size=model_dict['embed_size'], nhead=model_dict['nhead'], t_dropout=model_dict.get('t_dropout', 0.1), e_dropout=model_dict.get('e_dropout', 0.5))
+    model = ErsatzTransformer(model_dict['vocab'], model_dict['args'])
     model.load_state_dict(model_dict['weights'])
     return model
 
@@ -99,20 +99,14 @@ def save_model(model, output_path):
     model_dict = {
         'weights': model.state_dict(),
         'vocab': model.vocab,
-        'left_context_size': model.left_context_size,
-        'right_context_size': model.right_context_size,
-        'embed_size': model.embed_size,
-        'nhead': model.nhead,
-        't_dropout': model.t_dropout,
-        'e_dropout': model.e_dropout,
+        'args': model.args
     }
     torch.save(model_dict, output_path)
 
 
 class ErsatzTrainer():
     
-    #def __init__(self, train_path, valid_path, batch_size, output_path, vocabulary_path, lr=5.0, embed_size=512, nhead=8, nlayers=6, cpu=False, train_corpus_path='processed.train.corpus', valid_corpus_path='processed.valid.corpus'):
-    def __init__(self, args):   
+    def __init__(self, args):
         self.with_cuda = torch.cuda.is_available() and not args.cpu
         self.device = torch.device("cuda:0" if self.with_cuda else "cpu")
         self.output_path = args.output_path       
@@ -145,19 +139,18 @@ class ErsatzTrainer():
             logging.info('Loading pre-existing model from checkpoint')
             self.model = torch.load(args.output_path, map_location=self.device)
         else:
-            self.model = ErsatzTransformer(self.training_set.vocab, left_context_size, right_context_size, embed_size=args.embed_size, nhead=args.nhead, num_layers=args.nlayers, t_dropout=args.t_dropout, e_dropout=args.e_dropout).to(self.device)
+            self.model = ErsatzTransformer(self.training_set.vocab, left_context_size, right_context_size, embed_size=args.embed_size, nhead=args.nhead, num_layers=args.nlayers, dropout=args.dropout).to(self.device)
     
         weights = torch.tensor([args.eos_weight, 1]).to(self.device) 
         self.criterion = nn.NLLLoss(weight=weights)
         self.lr = args.lr
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 1.0, gamma=0.95)
-       
-        print(self.model)
+
         total_params = sum([p.numel() for p in self.model.parameters()])
-        print(f'Training with: {total_params}')
+        logging.info(f'Training with: {total_params}')
         if self.with_cuda and torch.cuda.device_count() > 1:
-            print("Using %d GPUSs for ET" % torch.cuda.device_count())
+            logging.info("Using %d GPUSs for ET" % torch.cuda.device_count())
             self.model = nn.DataParallel(self.model) 
             self.model = self.model.cuda()
 
@@ -316,6 +309,7 @@ if __name__ == '__main__':
     parser.add_argument('train_path')
     parser.add_argument('valid_path')
     parser.add_argument('--vocabulary_path')
+    parser.add_argument('--determiner_type', default='punc', choices=["punc", "split", "multilingual"])
     parser.add_argument('--left_size', type=int, default=15)
     parser.add_argument('--right_size', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=256)
@@ -326,10 +320,10 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--embed_size', type=int, default=256)
-    parser.add_argument('--model_type', type=str, default="transformer", choices=["transformer", "linear"])
+    parser.add_argument('--transformer_nlayers', type=int, default=2)
+    parser.add_argument('--linear_nlayers', type=int, default=0)
     parser.add_argument('--activation_type', type=str, default="tanh", choices=["tanh"])
     parser.add_argument('--nhead', type=int, default=8)
-    parser.add_argument('--nlayers', type=int, default=2)
     parser.add_argument('--log_interval', type=int, default=1000)
     parser.add_argument('--validation_interval', type=int, default=25000)
     parser.add_argument('--early_stopping', type=int, default=25)
@@ -339,13 +333,22 @@ if __name__ == '__main__':
     parser.add_argument('--eos_weight', type=float, default=9.0)
     parser.add_argument('--seed', type=int, default=14)
     args = parser.parse_args()
-   
+
+
+    if args.determiner_type == "punc":
+        global_determiner = PunctuationSpace()
+    elif args.determiner_type == 'multilingual':
+        global_determiner = MultilingualPunctuation()
+    else:
+        global_determiner = Split()
+
+
     torch.manual_seed(args.seed)
     logging.info('Starting trainer...')
     trainer = ErsatzTrainer(args)
 
-    print(trainer.model)
-    print(args)
+    logging.info(trainer.model)
+    logging.info(args)
     writer = None
     logging.info('Starting training...')
     minloss = math.inf
@@ -357,7 +360,6 @@ if __name__ == '__main__':
         status['epoch'] = epoch
         trainer.model.train()
         res, status, best_model = trainer.run_epoch(epoch, writer, args.batch_size, args.log_interval, args.validation_interval, results, best_model, min_epochs=args.min_epochs, validation_threshold=args.early_stopping)
-        print(res)
         if res == 0 and epoch > args.min_epochs:
             break
         trainer.scheduler.step()

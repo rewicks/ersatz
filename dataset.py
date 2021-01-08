@@ -213,9 +213,9 @@ class Vocabulary():
             tens = []
             for l in left:
                 tens.append([self.embed_word(l)])
-            # if self.hole:
-            #     #print('appending hole')
-            #     tens.append([self.embed_word('<hole>')])
+            #if self.hole:
+            #    #print('appending hole')
+            #    tens.append([self.embed_word('<hole>')])
             for r in right:
                 tens.append([self.embed_word(r)])
             con_arr.append(tens)

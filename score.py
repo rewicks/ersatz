@@ -88,6 +88,6 @@ if __name__ == '__main__':
  
     args = parser.parse_args()
     
-    #det = PunctuationSpace()
-    det = MultilingualPunctuation()
+    det = PunctuationSpace()
+    #det = MultilingualPunctuation()
     score(args.rubric_file_path, args.pred_file_path, det, rtl=args.rtl)

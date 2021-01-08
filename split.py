@@ -13,14 +13,29 @@ logging.basicConfig(format="%(levelname)s : %(message)s", level=logging.INFO)
 
 Batch = namedtuple("Batch", "contexts labels indices")
 
-global_det = MultilingualPunctuation()
+#global_det = MultilingualPunctuation()
 #global_det = Split()
-#global_det = PunctuationSpace()
+global_det = PunctuationSpace()
+
+class DefaultArgs():
+    def __init__(self):
+        self.left_context_size=4
+        self.right_context_size=6
+        self.embed_size=256
+        self.nhead=8
+        self.dropout=0.1
+        self.transformer_nlayers=2    
+        self.linear_nlayers=0
+        self.activation_type='tanh'
 
 def load_model(checkpoint_path):
     model_dict = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-    model = ErsatzTransformer(model_dict['vocab'], model_dict['left_context_size'], model_dict['right_context_size'], embed_size=model_dict['embed_size'], nhead=model_dict['nhead'], t_dropout=model_dict.get('t_dropout', 0.1), e_dropout=model_dict.get('e_dropout', 0.5), num_layers=2)
+    model = ErsatzTransformer(model_dict['vocab'], model_dict['args'])
+    #model = ErsatzTransformer(model_dict['vocab'], DefaultArgs())
+    #model = ErsatzTransformer(model_dict['vocab'], model_dict['left_context_size'], model_dict['right_context_size'], embed_size=model_dict['embed_size'], nhead=model_dict['nhead'], t_dropout=model_dict.get('t_dropout', 0.1), e_dropout=model_dict.get('e_dropout', 0.5), num_layers=2)
     model.load_state_dict(model_dict['weights'])
+    model.eval()
+    logging.info(model)
     return model
 
 def detokenize(input_string):
@@ -39,7 +54,7 @@ class EvalModel():
             self.vocab = self.model.vocab
             self.left_context_size = self.model.left_context_size
             self.right_context_size = self.model.right_context_size
-            self.context_size = self.left_context_size + self.right_context_size + 1
+            self.context_size = self.left_context_size + self.right_context_size 
             #self.spm_path = spm_path
             if torch.cuda.device_count() > 1:
                 self.model = torch.nn.DataParallel(self.model)
@@ -54,7 +69,7 @@ class EvalModel():
             #self.context_size = self.model.context_size
             self.left_context_size = self.model.left_context_size
             self.right_context_size = self.model.right_context_size
-            self.context_size = self.right_context_size + self.left_context_size + 1
+            self.context_size = self.right_context_size + self.left_context_size
             #self.spm_path = spm_path
 
     def evaluate(self, file_path):
@@ -80,7 +95,7 @@ class EvalModel():
                     else:
                         right_context.append('<PAD>')
                     temp_index += 1
-                context, _ = self.vocab.context_to_tensor([(left_context, right_context, '<HOLE>')])
+                context, _ = self.vocab.context_to_tensor([(left_context, right_context, '<hole>')])
                 context = context.view(-1, self.context_size)
                 if self.model.module.predict_word(context) == '<eos>':
                     output.append('\n')

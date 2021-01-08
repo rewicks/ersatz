@@ -8,11 +8,11 @@ task train : ersatz
 	:: batch_size=@
 	:: min_epochs=@
 	:: max_epochs=@
-	:: nlayers=@
+	:: transformer_nlayers=@
+    :: linear_nlayers=@
 	:: lr=@
 	:: dropout=@
 	:: embed_size=@
-	:: model_type=@
 	:: activation_type=@
 	:: nhead=@
 	:: log_interval=@
@@ -24,9 +24,9 @@ task train : ersatz
 	--left_size=$left_size \
 	--right_size=$right_size \
 	--output_path=$out \
-	--model_type=$model_type \
+	--transformer_nlayers=$transformer_nlayers \
 	--activation_type=$activation_type \
-	--nlayers=$nlayers \
+	--linear_nlayers=$nlayers \
 	--min-epochs=$min_epochs \
 	--max-epochs=$max_epochs \
 	--lr=$lr \

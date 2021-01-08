@@ -139,7 +139,8 @@ class ErsatzTrainer():
             logging.info('Loading pre-existing model from checkpoint')
             self.model = torch.load(args.output_path, map_location=self.device)
         else:
-            self.model = ErsatzTransformer(self.training_set.vocab, left_context_size, right_context_size, embed_size=args.embed_size, nhead=args.nhead, num_layers=args.nlayers, dropout=args.dropout).to(self.device)
+            self.model = ErsatzTransformer(self.training_set.vocab, args).to(self.device)
+            #self.model = ErsatzTransformer(self.training_set.vocab, left_context_size, right_context_size, embed_size=args.embed_size, nhead=args.nhead, num_layers=args.nlayers, dropout=args.dropout).to(self.device)
     
         weights = torch.tensor([args.eos_weight, 1]).to(self.device) 
         self.criterion = nn.NLLLoss(weight=weights)

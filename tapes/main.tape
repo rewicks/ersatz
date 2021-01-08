@@ -20,7 +20,8 @@ plan do_english_context_grid {
 		(LeftSize: 1) *
 		(RightSize: 1) *
 		(EmbedSize: 256) *
-		(ModelType: transformer) *
+		(TransformerLayers: 2) *
+        (LinearLayers: 0) *
 		(ActivationType: tanh) *
 		(EmbedSize: 256)
 }
@@ -30,7 +31,8 @@ plan do_english_char_context_grid {
 		(LeftSize: 1 2 3 4 5 6 7 8 9 10) *
 		(RightSize: 1 2 3 4 5 6 7 8 9 10) *
 		(EmbedSize: 256) *
-		(ModelType: transformer) *
+		(TransformerLayers: 2) *
+        (LinearLayers: 0) *
 		(ActivationType: tanh) *
 		(EmbedSize: 256)
 }

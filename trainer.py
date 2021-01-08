@@ -296,7 +296,7 @@ class ErsatzTrainer():
                         logging.info(f'SAVING MODEL: { json.dumps(best_model)}')
                     else:
                         if epoch > min_epochs and status['validations'] - best_model['validation_num'] >= validation_threshold:
-                            logging.info(f'EARLING STOPPING {json.dumps(best_model)}')
+                            logging.info(f'EARLY STOPPING {json.dumps(best_model)}')
                             return 0, status, best_model
                 else:
                     save_model(self.model, os.path.join(self.output_path, 'checkpoint.best'))

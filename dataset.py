@@ -3,6 +3,7 @@ import os
 from collections import namedtuple
 import torch
 import random
+import json
 #import sentencepiece as spm
 
 PUNCTUATION = ['`', '!', '\'', '"', ';', ':', '.', '?', ','] 
@@ -89,15 +90,12 @@ def split_test_file(file_path, left_context_size, right_context_size, spm_path='
             right_temp = []
             # Get the left context
             temp_index = index - 1
-            try:
-                while (len(left_temp) < left_context_size):
-                    if temp_index >= 0:
-                        left_temp.append(c[temp_index])
-                    else:
-                        left_temp.append('<pad>')
-                    temp_index -= 1
-            except:
-                import pdb; pdb.set_trace()       
+            while (len(left_temp) < left_context_size):
+                if temp_index >= 0:
+                    left_temp.append(c[temp_index])
+                else:
+                    left_temp.append('<pad>')
+                temp_index -= 1
  
             left_temp.reverse()
             left_contexts.append(left_temp)
@@ -153,7 +151,10 @@ class Vocabulary():
             self.itos = ['' for x in self.stoi]
             for key in self.stoi:
                 self.itos[self.stoi[key]] = key
-             
+            for word in ['<eos>', '<mos>', '<unk>', '<hole>', '<pad>']:
+                if word not in self.stoi:
+                    self.add_word(word)      
+       
         self.hole = hole
 
     def __len__(self):
@@ -224,7 +225,7 @@ class Vocabulary():
 class ErsatzDataset():
     def __init__(self, data_path, device, left_context_size=15, right_context_size=5, vocabulary_path=None, vocab=None, transform=None, hole=False, sub_size=25000000):
         if vocabulary_path is not None:
-            self.vocab = Vocabulary(vocabulary_path=vocabulary_path)
+            self.vocab = Vocabulary(vocab_path=vocabulary_path)
         elif vocab is not None:
             self.vocab = vocab
         else:
@@ -255,8 +256,9 @@ class ErsatzDataset():
         with open(self.data_path) as f:
             for line in f:
                 self.size += 1
-                left, right, label = line.strip().split('|||')
-                data.append((left.strip().split(), right.strip().split(), label.strip()))
+                if len(line.strip().split('|||')) == 3:
+                    left, right, label = line.strip().split('|||')
+                    data.append((left.strip().split(), right.strip().split(), label.strip()))
                 if len(data) >= batch_size:
                     context, label = self.vocab.context_to_tensor(data)
                     context = context.view(len(data), -1)
@@ -264,7 +266,6 @@ class ErsatzDataset():
                     yield batch_idx, Batch(context, label)
                     batch_idx += 1
                     data = []
-
             context, label = self.vocab.context_to_tensor(data)
             context = context.view(len(data), -1)
             label = label.view(len(data))
@@ -291,8 +292,9 @@ class ErsatzDataset():
                         #batches.append(Batch(context, label, self.left_context_size, self.right_context_size))
                         data = []
                     else:
-                        left, right, label = line.strip().split('|||')
-                        data.append((left.strip().split(), right.strip().split(), label.strip()))
+                        if len(line.strip().split('|||') == 3:
+                            left, right, label = line.strip().split('|||')
+                            data.append((left.strip().split(), right.strip().split(), label.strip()))
 
             context, label = self.vocab.context_to_tensor(data)
             context = context.view(len(data), -1)

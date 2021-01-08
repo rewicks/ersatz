@@ -6,7 +6,46 @@ import numpy as np
 from collections import namedtuple
 import random
 import os
-     
+'''
+class ErsatzTransformer(nn.Module):
+    
+    def __init__(self, vocab, left_context_size, right_context_size, embed_size=512, nhead=8, num_layers=2, t_dropout=0.1, e_dropout=0.5):
+        super(ErsatzTransformer, self).__init__()
+
+        # each layer of the transformer
+        
+        # embeds the input into a embed_size dimensional space
+        self.src_emb = nn.Embedding(len(vocab), embed_size)
+        self.embed_dropout = nn.Dropout(e_dropout)
+        # uses sine function to get positional embeddings
+
+        # vocab; includes stoi and itos look ups
+        self.vocab = vocab
+        self.embed_size = embed_size
+        self.nhead = nhead
+        self.num_layers = num_layers
+        self.t_dropout = t_dropout
+        self.e_dropout = e_dropout
+        self.left_context_size = left_context_size
+        self.right_context_size = right_context_size        
+        self.max_size = self.left_context_size + self.right_context_size + 1
+
+        # takes flattened output of last layer and maps to vocabulary size
+        #print(f'vocab size: {len(self.vocab)}')
+        #print(f'embed_size: {self.embed_size}')
+        #print(f'max_size: {self.max_size}')
+        self.generator = Generator(self.embed_size, self.max_size, len(self.vocab))
+
+    def forward(self, src):
+        embed = self.src_emb(src)
+        embed = self.embed_dropout(embed)
+        output = self.generator(embed)
+        return output
+
+    def predict_word(self, src):
+        output = self.forward(src)
+        return self.vocab.itos[torch.argmax(output)]
+'''     
 class ErsatzTransformer(nn.Module):
     
     def __init__(self, vocab, left_context_size, right_context_size, embed_size=512, nhead=8, num_layers=2, t_dropout=0.1, e_dropout=0.5):
@@ -58,17 +97,32 @@ class Generator(nn.Module):
     # could change this to mean-pool or max pool
     def __init__(self, embed_size, max_size, vocab_size):
         super(Generator, self).__init__()
-        hidden = max_size * ((embed_size-1)//2)
-        self.pooling_layer = nn.MaxPool1d(4, stride=2)
-        self.lin = nn.Linear(hidden, hidden)
-        self.activation = nn.LogSigmoid()
-        self.proj = nn.Linear(hidden, 2)   
+        hidden = max_size * embed_size
+        #hidden = max_size * ((embed_size-1)//2)
+        #self.pooling_layer = nn.MaxPool1d(4, stride=2)
+        self.lin = nn.Linear(hidden, embed_size)
+        #self.activation = nn.LogSigmoid()
+        self.activation = nn.Tanh()
+        #self.lin2 = nn.Linear(embed_size, embed_size)
+        #self.lin3 = nn.Linear(hidden, hidden)
+        #self.proj = nn.Linear(hidden, 2)   
+        self.proj = nn.Linear(embed_size, 2)
+
+    #def forward(self, x):
+    #    x = self.pooling_layer(x)
+    #    x = x.reshape(x.size()[0], -1)
+    #    x = self.lin(x)
+    #    x = self.activation(x)
+    #    return F.log_softmax(self.proj(x), dim=-1)
 
     def forward(self, x):
-        x = self.pooling_layer(x)
         x = x.reshape(x.size()[0], -1)
         x = self.lin(x)
         x = self.activation(x)
+        #x = self.lin2(x)
+        #x = self.activation(x)
+        #x = self.lin3(x)
+        #x = self.activation(x)
         return F.log_softmax(self.proj(x), dim=-1)
 
 

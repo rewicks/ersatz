@@ -29,7 +29,7 @@ task make_valid_data : ersatz
 	PYTHONPATH=. python $ersatz/dataset.py \
 		--left-size $left_size \
 		--right-size $right_size \
-		--output_path out \
+		--output_path out_og \
 		$valid_data_path
 	shuf --random-source=<(get_seeded_random 14) out_og > out_shuffle
 }

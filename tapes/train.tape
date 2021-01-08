@@ -36,7 +36,7 @@ task train : ersatz
 	--log_interval=$log_interval \
 	--validation_interval=$validation_interval \
 	--eos_weight=$eos_weight \
-	train_path \
-	valid_path
+	$train_path \
+	$valid_path
 }
 

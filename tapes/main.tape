@@ -10,7 +10,7 @@ global {
 	ducttape_experimental_multiproc=true
 }
 
-import "env_local.tape"
+import "env_coe.tape"
 import "params.tape"
 import "prepro.tape"
 import "train.tape"

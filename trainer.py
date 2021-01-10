@@ -4,7 +4,6 @@ import time
 import torch
 import torch.nn as nn
 import argparse
-import torchvision
 from determiner import PunctuationSpace, Split, MultilingualPunctuation
 import os
 import logging
@@ -12,11 +11,6 @@ import math
 import json
 
 logging.basicConfig(format="%(levelname)s : %(message)s", level=logging.INFO)
-
-#global_determiner = Split()
-global_determiner = PunctuationSpace()
-#global_determiner = MultilingualPunctuation()
-
 
 class Results():
     def __init__(self, time):
@@ -127,9 +121,6 @@ class ErsatzTrainer():
             logging.info('Builing validation set...')
             self.validation_set = ErsatzDataset(args.valid_path, self.device, vocab=self.training_set.vocab, left_context_size=args.left_size, right_context_size=args.right_size)
             torch.save(self.validation_set, args.valid_corpus_path)
-    
-        left_context_size = self.training_set.left_context_size
-        right_context_size = self.training_set.right_context_size
 
         logging.info(f'{self.device}')
         if not os.path.exists(args.output_path):
@@ -140,8 +131,7 @@ class ErsatzTrainer():
             self.model = torch.load(args.output_path, map_location=self.device)
         else:
             self.model = ErsatzTransformer(self.training_set.vocab, args).to(self.device)
-            #self.model = ErsatzTransformer(self.training_set.vocab, left_context_size, right_context_size, embed_size=args.embed_size, nhead=args.nhead, num_layers=args.nlayers, dropout=args.dropout).to(self.device)
-    
+
         weights = torch.tensor([args.eos_weight, 1]).to(self.device) 
         self.criterion = nn.NLLLoss(weight=weights)
         self.lr = args.lr
@@ -168,8 +158,8 @@ class ErsatzTrainer():
         retVal['inference_correct_mos'] = 0
         retVal['inference_incorrect_mos'] = 0
         self.model.eval()
-        eos_ind = 0
-        mos_ind = 1
+        eos_ind = self.model.vocab.embed_word('<eos>')
+        mos_ind = self.model.vocab.embed_word('<mos>')
         with torch.no_grad():
             for i, batch in self.validation_set.batchify(batch_size):
                 data = batch.contexts.to(self.device)
@@ -196,13 +186,13 @@ class ErsatzTrainer():
                     right_context = self.model.vocab.tensor_to_string(context_item[-self.model.right_context_size:])
                     right_context = self.model.vocab.detokenize(right_context)
                     if determiner(left_context, right_context):
-                        if label_item == 0:
-                            if p.item() == 0: 
+                        if label_item == eos_ind:
+                            if p.item() == eos_ind:
                                 retVal['inference_correct_eos'] += 1
                             else:
                                 retVal['inference_incorrect_eos'] += 1
                         else:
-                            if p.item() == 1:
+                            if p.item() == mos_ind:
                                 retVal['inference_correct_mos'] += 1
                             else:
                                 retVal['inference_incorrect_mos'] += 1
@@ -225,10 +215,10 @@ class ErsatzTrainer():
         self.model.train()
         return retVal
 
-    def run_epoch(self, epoch, writer, batch_size, log_interval, validation_interval, results, best_model, min_epochs = 10, validation_threshold=10):
+    def run_epoch(self, epoch, batch_size, log_interval, validation_interval, results, best_model, min_epochs = 10, validation_threshold=10):
 
-        eos_ind = 0
-        mos_ind = 1    
+        eos_ind = self.model.vocab.embed_word('<eos>')
+        mos_ind = self.model.vocab.embed_word('<mos>')
         for i, batch in self.training_set.batchify(batch_size):
             data = batch.contexts.to(self.device)
             labels = batch.labels.to(self.device)
@@ -247,21 +237,12 @@ class ErsatzTrainer():
             if i % log_interval == 1:
                 status = results.get_results(self.scheduler.get_lr()[0]) 
                 logging.info(json.dumps(status))
-            
-                #writer.add_scalar('AverageLoss/train', status['average_loss'], status['time_passed'])
-                #writer.add_scalar('Accuracy/train', status['acc'], status['time_passed'])
-                #writer.add_scalar('Precision/train', status['prec'], status['time_passed'])
-                #writer.add_scalar('Recall/train', status['recall'], status['time_passed'])
-                #writer.add_scalar('F1/train', status['f1'], status['time_passed'])
-                #writer.add_scalar('WPS', status['predictions_per_second'], status['time_passed'])
-            
                 results.reset(time.time())
 
             if i % validation_interval == 1:
                 stats = self.validate(batch_size, global_determiner)
                 stats['type'] = 'VALIDATION'
                 results.validated()
-                time_mark = time.time()-results.start
                 stats['average_loss'] = stats['total_loss']/stats['num_pred']
                 stats['acc'] = (stats['correct_eos'] + stats['correct_mos'])/stats['num_pred']
                 if stats['num_pred_eos'] != 0:
@@ -277,11 +258,6 @@ class ErsatzTrainer():
                 else:
                     stats['f1'] = 0
                 logging.info(json.dumps(stats))
-                #writer.add_scalar('AverageLoss/valid', stats['average_loss'], time_mark)
-                #writer.add_scalar('Accuracy/valid', stats['acc'], time_mark)
-                #writer.add_scalar('Precision/valid', stats['prec'], time_mark)
-                #writer.add_scalar('Recall/valid', stats['recall'], time_mark)
-                #writer.add_scalar('F1/valid', stats['f1'], time_mark)
                 if best_model is not None:
                     if stats['inference_f1'] > best_model['inference_f1']:
                         save_model(self.model, os.path.join(self.output_path, 'checkpoint.best'))
@@ -350,8 +326,6 @@ if __name__ == '__main__':
 
     logging.info(trainer.model)
     logging.info(args)
-    writer = None
-    logging.info('Starting training...')
     minloss = math.inf
     status = {}
     status['type'] = 'TRAINING'
@@ -360,7 +334,7 @@ if __name__ == '__main__':
     for epoch in range(args.max_epochs):
         status['epoch'] = epoch
         trainer.model.train()
-        res, status, best_model = trainer.run_epoch(epoch, writer, args.batch_size, args.log_interval, args.validation_interval, results, best_model, min_epochs=args.min_epochs, validation_threshold=args.early_stopping)
+        res, status, best_model = trainer.run_epoch(epoch, args.batch_size, args.log_interval, args.validation_interval, results, best_model, min_epochs=args.min_epochs, validation_threshold=args.early_stopping)
         if res == 0 and epoch > args.min_epochs:
             break
         trainer.scheduler.step()

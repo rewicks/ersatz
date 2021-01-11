@@ -16,7 +16,7 @@ import "prepro.tape"
 import "train.tape"
 
 plan do_english_context_grid {
-	reach train via (Scenario: en) *
+	reach train via (Scenario: en_16000) *
 		(LeftSize: 1) *
 		(RightSize: 1) *
 		(EmbedSize: 256) *

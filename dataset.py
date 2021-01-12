@@ -172,8 +172,9 @@ class ErsatzDataset():
                 self.size += 1
                 if len(line.strip().split('|||')) == 3:
                     left, right, label = line.strip().split('|||')
-                    data.append((left.strip(), right.strip(), label.strip()))
-                    context_strings.append((left.strip(), right.strip()))
+                    if (len(left.split()) == self.left_context_size) and (len(right.split()) == self.right_context_size):
+                        data.append((left.strip(), right.strip(), label.strip()))
+                        context_strings.append((left.strip(), right.strip()))
                 if len(data) >= batch_size:
                     context, label = self.tokenizer.context_to_tensor(data)
                     context = context.view(len(data), -1)

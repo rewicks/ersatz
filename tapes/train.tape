@@ -26,7 +26,7 @@ task train : ersatz
 	--output_path=$out \
 	--transformer_nlayers=$transformer_nlayers \
 	--activation_type=$activation_type \
-	--linear_nlayers=$nlayers \
+	--linear_nlayers=$linear_nlayers \
 	--min-epochs=$min_epochs \
 	--max-epochs=$max_epochs \
 	--lr=$lr \

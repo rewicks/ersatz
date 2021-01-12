@@ -130,19 +130,20 @@ class EvalModel():
                     eos = sorted(eos)
                     next_index = int(eos.pop(0))
                     this_content = self.tokenizer.encode(content[i], out_type=str)
-                    output = ''
+                    output = []
                     counter = 0
                     for index, word in enumerate(this_content):
                         if counter == next_index:
-                            output += '\n' + word
+                            output.append('\n')
+                            output.append(word)
                             try:
                                 next_index = int(eos.pop(0))
                             except:
                                 next_index = -1
                         else:
-                            output += ' ' + word
+                            output.append(word)
                         counter += 1
-                    output = self.tokenizer.merge(output)
+                    output = self.tokenizer.merge(output, technique='utility')
                     yield output
             else:
                 yield ''

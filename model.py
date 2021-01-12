@@ -2,78 +2,10 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from collections import namedtuple
-import random
-import os
 
-'''
-class ErsatzTransformer(nn.Module):
-    
-    def __init__(self, vocab, left_context_size, right_context_size, embed_size=512, nhead=8, num_layers=2, t_dropout=0.1, e_dropout=0.5):
-        super(ErsatzTransformer, self).__init__()
-
-
-        # each layer of the transformer
-        encoder_layer = nn.TransformerEncoderLayer(embed_size, nhead, dropout=t_dropout)
-        # build the transformer with n of the previous layers
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        
-        # embeds the input into a embed_size dimensional space
-        self.src_emb = nn.Embedding(len(vocab), embed_size)
-        self.embed_dropout = nn.Dropout(e_dropout)
-        
-        # uses sine function to get positional embeddings
-        self.pos_embed = PositionalEncoding(embed_size=embed_size, dropout=e_dropout, max_len=(left_context_size + right_context_size+1))
-
-        # vocab; includes stoi and itos look ups
-        self.vocab = vocab
-        self.embed_size = embed_size
-        self.nhead = nhead
-        self.num_layers = num_layers
-        self.t_dropout = t_dropout
-        self.e_dropout = e_dropout
-        self.left_context_size = left_context_size
-        self.right_context_size = right_context_size        
-        self.max_size = self.left_context_size + self.right_context_size + 1
-
-        # takes flattened output of last layer and maps to vocabulary size
-        #print(f'vocab size: {len(self.vocab)}')
-        #print(f'embed_size: {self.embed_size}')
-        #print(f'max_size: {self.max_size}')
-        self.generator = Generator(self.embed_size, self.max_size, len(self.vocab))
-
-    def forward(self, src):
-        embed = self.src_emb(src)
-        embed = self.embed_dropout(embed)
-        output = self.generator(embed)
-        return output
-
-    def predict_word(self, src):
-        output = self.forward(src)
-        return self.vocab.itos[torch.argmax(output)]
-
-class Generator(nn.Module):
-
-    # could change this to mean-pool or max pool
-    def __init__(self, embed_size, max_size, vocab_size):
-        super(Generator, self).__init__()
-        self.lin = nn.Linear(embed_size*max_size, embed_size*max_size)
-        self.proj = nn.Linear(embed_size*max_size, 2)
-        self.activation = nn.Tanh()
-
-    def forward(self, x):
-        x = x.reshape(x.size()[0], -1)
-        x = self.lin(x)
-        x = self.activation(x)
-        return F.log_softmax(self.proj(x), dim=-1)
-
-
-'''    
 class ErsatzTransformer(nn.Module):
 
-    def __init__(self, vocab, args):
-    #def __init__(self, vocab, left_context_size, right_context_size, embed_size=512, nhead=8, num_layers=2, t_dropout=0.1, e_dropout=0.5):
+    def __init__(self, tokenizer, args):
         super(ErsatzTransformer, self).__init__()
 
         if args.transformer_nlayers > 0:
@@ -86,11 +18,11 @@ class ErsatzTransformer(nn.Module):
             self.nhead = args.nhead
 
         # embeds the input into a embed_size dimensional space
-        self.src_emb = nn.Embedding(len(vocab), args.embed_size)
+        self.src_emb = nn.Embedding(len(tokenizer), args.embed_size)
         self.embed_dropout = nn.Dropout(args.dropout)
 
         # vocab; includes stoi and itos look ups
-        self.vocab = vocab
+        self.tokenizer = tokenizer
         self.transformer_nlayers = args.transformer_nlayers
         self.linear_nlayers = args.linear_nlayers
         self.dropout = args.dropout
@@ -110,13 +42,8 @@ class ErsatzTransformer(nn.Module):
         else:
             embed = self.src_emb(src)
             embed = self.embed_dropout(embed)
-        #output = output.reshape(output.size()[0], -1)
         output = self.embed_dropout(embed)
         return self.generator(output)
-
-    def predict_word(self, src):
-        output = self.forward(src)
-        return self.vocab.itos[torch.argmax(output)]
 
 class Generator(nn.Module):
     
@@ -126,36 +53,30 @@ class Generator(nn.Module):
         hidden = max_size * embed_size
 
         if activation_type == 'tanh':
-            self.activation = nn.Tanh()
+            activation = nn.Tanh()
         if nlayers > 0:
             hidden_layers = [
                 nn.Linear(hidden, embed_size),
-                self.activation
+                activation
             ]
             for n in range(1, nlayers):
                 hidden_layers.append(
                     nn.Linear(embed_size, embed_size)
                 )
                 hidden_layers.append(
-                    self.activation
+                    activation
                 )
-            self.hidden_layers = nn.Sequential(hidden_layers)
+            self.hidden_layers = nn.ModuleList(hidden_layers)
             self.proj = nn.Linear(embed_size, 2)
         else:
             self.hidden_layers = None
             self.proj = nn.Linear(hidden, 2)
 
-    #def forward(self, x):
-    #    x = self.pooling_layer(x)
-    #    x = x.reshape(x.size()[0], -1)
-    #    x = self.lin(x)
-    #    x = self.activation(x)
-    #    return F.log_softmax(self.proj(x), dim=-1)
-
     def forward(self, x):
         x = x.reshape(x.size()[0], -1)
         if self.hidden_layers is not None:
-            x = self.hidden_layers(x)
+            for layer in self.hidden_layers:
+                x = layer(x)
         x = self.proj(x)
         return F.log_softmax(x, dim=-1)
 

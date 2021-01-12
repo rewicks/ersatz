@@ -90,9 +90,10 @@ def load_model(checkpoint_path):
     return model
 
 def save_model(model, output_path):
+    model = model.cpu()
     model_dict = {
         'weights': model.state_dict(),
-        'vocab': model.vocab,
+        'tokenizer': model.tokenizer,
         'args': model.args
     }
     torch.save(model_dict, output_path)
@@ -105,22 +106,17 @@ class ErsatzTrainer():
         self.device = torch.device("cuda:0" if self.with_cuda else "cpu")
         self.output_path = args.output_path       
         self.batch_size = args.batch_size
-        
-        if os.path.exists(args.train_corpus_path):
-            logging.info('Loading pre-processed training corpus')
-            self.training_set = torch.load(args.train_corpus_path, map_location=torch.device('cpu'))
-        else:
-            logging.info('Building dataset...')
-            self.training_set = ErsatzDataset(args.train_path, self.device, vocabulary_path=args.vocabulary_path, left_context_size=args.left_size, right_context_size=args.right_size)
-            torch.save(self.training_set, args.train_corpus_path)
 
-        if os.path.exists(args.valid_corpus_path):
-            logging.info('Loading pre-processed validation corpus')
-            self.validation_set = torch.load(args.valid_corpus_path, map_location=torch.device('cpu'))
-        else:
-            logging.info('Builing validation set...')
-            self.validation_set = ErsatzDataset(args.valid_path, self.device, vocab=self.training_set.vocab, left_context_size=args.left_size, right_context_size=args.right_size)
-            torch.save(self.validation_set, args.valid_corpus_path)
+        self.training_set = ErsatzDataset(args.train_path,
+                                          self.device,
+                                          sentencepiece_path=args.sentencepiece_path,
+                                          left_context_size=args.left_size,
+                                          right_context_size=args.right_size)
+        self.validation_set = ErsatzDataset(args.valid_path,
+                                            self.device,
+                                            tokenizer=self.training_set.tokenizer,
+                                            left_context_size=args.left_size,
+                                            right_context_size=args.right_size)
 
         logging.info(f'{self.device}')
         if not os.path.exists(args.output_path):
@@ -130,7 +126,7 @@ class ErsatzTrainer():
             logging.info('Loading pre-existing model from checkpoint')
             self.model = torch.load(args.output_path, map_location=self.device)
         else:
-            self.model = ErsatzTransformer(self.training_set.vocab, args).to(self.device)
+            self.model = ErsatzTransformer(self.training_set.tokenizer, args).to(self.device)
 
         weights = torch.tensor([args.eos_weight, 1]).to(self.device) 
         self.criterion = nn.NLLLoss(weight=weights)
@@ -158,12 +154,12 @@ class ErsatzTrainer():
         retVal['inference_correct_mos'] = 0
         retVal['inference_incorrect_mos'] = 0
         self.model.eval()
-        eos_ind = self.model.vocab.embed_word('<eos>')
-        mos_ind = self.model.vocab.embed_word('<mos>')
+        eos_ind = 0
+        mos_ind = 1
         with torch.no_grad():
-            for i, batch in self.validation_set.batchify(batch_size):
-                data = batch.contexts.to(self.device)
-                labels = batch.labels.to(self.device)
+            for i, (contexts, labels, context_strings) in enumerate(self.validation_set.batchify(batch_size)):
+                data = contexts.to(self.device)
+                labels = labels.to(self.device)
                 output = self.model.forward(data)
                 loss = self.criterion(output, labels)
                 pred = output.argmax(1)
@@ -179,12 +175,10 @@ class ErsatzTrainer():
                 retVal['correct_mos'] = retVal['num_pred'] - (retVal['num_obs_eos'] + retVal['num_pred_eos'] - retVal['correct_eos'])
         
                 retVal['total_loss'] += loss.item()
-                for context_item, label_item, p in zip(batch.contexts, batch.labels, torch.argmax(output, dim=1)):
-                    left_context = self.model.vocab.tensor_to_string(context_item[:self.model.left_context_size])
-                    left_context = self.model.vocab.detokenize(left_context)
+                for context_item, label_item, p in zip(context_strings, labels, torch.argmax(output, dim=1)):
+                    left_context = self.model.tokenizer.merge(context_item[0])
+                    right_context = self.model.tokenizer.merge(context_item[1])
 
-                    right_context = self.model.vocab.tensor_to_string(context_item[-self.model.right_context_size:])
-                    right_context = self.model.vocab.detokenize(right_context)
                     if determiner(left_context, right_context):
                         if label_item == eos_ind:
                             if p.item() == eos_ind:
@@ -217,11 +211,11 @@ class ErsatzTrainer():
 
     def run_epoch(self, epoch, batch_size, log_interval, validation_interval, results, best_model, min_epochs = 10, validation_threshold=10):
 
-        eos_ind = self.model.vocab.embed_word('<eos>')
-        mos_ind = self.model.vocab.embed_word('<mos>')
-        for i, batch in self.training_set.batchify(batch_size):
-            data = batch.contexts.to(self.device)
-            labels = batch.labels.to(self.device)
+        eos_ind = 0
+        mos_ind = 1
+        for i, (contexts, labels, context_strings) in enumerate(self.training_set.batchify(batch_size)):
+            data = contexts.to(self.device)
+            labels = labels.to(self.device)
             output = self.model.forward(data)
             loss = self.criterion(output, labels)
        
@@ -261,6 +255,7 @@ class ErsatzTrainer():
                 if best_model is not None:
                     if stats['inference_f1'] > best_model['inference_f1']:
                         save_model(self.model, os.path.join(self.output_path, 'checkpoint.best'))
+                        self.model = self.model.to(self.device)
                         best_model = stats
                         best_model['validation_num'] = status['validations']
                         logging.info(f'SAVING MODEL: { json.dumps(best_model)}')
@@ -270,23 +265,23 @@ class ErsatzTrainer():
                             return 0, status, best_model
                 else:
                     save_model(self.model, os.path.join(self.output_path, 'checkpoint.best'))
+                    self.model = self.model.to(self.device)
                     best_model = stats
                     logging.info(f'SAVING MODEL: { json.dumps(best_model) }')
                     best_model['validation_num'] = status['validations']
-                    self.model.to(self.device)
         logging.info(f'SAVING MODEL: End of epoch {epoch}')
         save_model(self.model, os.path.join(self.output_path, f'checkpoint.e{epoch}')) 
-        self.model.to(self.device) 
+        self.model = self.model.to(self.device)
         return 1, status, best_model
 
 
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('train_path')
-    parser.add_argument('valid_path')
-    parser.add_argument('--vocabulary_path')
-    parser.add_argument('--determiner_type', default='punc', choices=["punc", "split", "multilingual"])
+    parser.add_argument('train_path', type=str)
+    parser.add_argument('valid_path', type=str)
+    parser.add_argument('--sentencepiece_path')
+    parser.add_argument('--determiner_type', default='en', choices=["en", "multilingual", "all"])
     parser.add_argument('--left_size', type=int, default=15)
     parser.add_argument('--right_size', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=256)
@@ -294,7 +289,7 @@ if __name__ == '__main__':
     parser.add_argument('--max-epochs', type=int, default=1000)
     parser.add_argument('--output_path', type=str, default='models')
     parser.add_argument('--checkpoint_path', type=str)
-    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--lr', type=float, default=0.0001)
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--embed_size', type=int, default=256)
     parser.add_argument('--transformer_nlayers', type=int, default=2)
@@ -305,16 +300,14 @@ if __name__ == '__main__':
     parser.add_argument('--validation_interval', type=int, default=25000)
     parser.add_argument('--early_stopping', type=int, default=25)
     parser.add_argument('--cpu', action='store_true')
-    parser.add_argument('--train_corpus_path', type=str, default='processed.train.corpus')
-    parser.add_argument('--valid_corpus_path', type=str, default='processed.valid.corpus')
     parser.add_argument('--eos_weight', type=float, default=9.0)
     parser.add_argument('--seed', type=int, default=14)
     args = parser.parse_args()
 
 
-    if args.determiner_type == "punc":
+    if args.determiner_type == "en":
         global_determiner = PunctuationSpace()
-    elif args.determiner_type == 'multilingual':
+    elif args.determiner_type == "multilingual":
         global_determiner = MultilingualPunctuation()
     else:
         global_determiner = Split()

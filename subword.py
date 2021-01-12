@@ -107,9 +107,11 @@ class SentencePiece(Vocabulary):
     def decode(self, ids):
         return self.model.decode(ids)
 
-    def merge(self, sentence: str) -> str:
-        return sentence.replace(' ', '').replace('▁', ' ')
-
+    def merge(self, sentence: str, technique='replace') -> str:
+        if technique == 'replace':
+            return sentence.replace(' ', '').replace('▁', ' ')
+        else:
+            return self.model.decode(sentence)
 
 def get_tokenizer(model_path, sample = False):
     return SentencePiece(model_path, sample=sample)

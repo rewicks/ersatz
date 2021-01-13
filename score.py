@@ -84,10 +84,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('rubric_file_path', type=str)
     parser.add_argument('pred_file_path', type=str)
-    parser.add_argument('--rtl', action='store_true')   
+    parser.add_argument('--rtl', action='store_true')
+    parser.add_argument('--determiner_type', default='en', choices=['en', 'multilingual', 'all'])
  
     args = parser.parse_args()
-    
-    det = PunctuationSpace()
-    #det = MultilingualPunctuation()
-    score(args.rubric_file_path, args.pred_file_path, det, rtl=args.rtl)
+
+    if args.determiner_type == "en":
+        determiner = PunctuationSpace()
+    elif args.determiner_type == 'multilingual':
+        determiner = MultilingualPunctuation()
+    else:
+        determiner = Split()
+
+    score(args.rubric_file_path, args.pred_file_path, determiner, rtl=args.rtl)

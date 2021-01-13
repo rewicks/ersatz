@@ -68,40 +68,36 @@ def split_train_file(file_paths, tokenizer, output_path=None, left_context_size=
 
 # split test files
 # the difference between this and the previous is there are no labels in data
-def split_test_file(file_path, tokenizer, left_context_size, right_context_size):
-    docs = []
-    content = open(file_path).read().split('\n')
+def split_test_file(content, tokenizer, left_context_size, right_context_size):
     content = tokenizer.encode(content, out_type=str)
-    for c in content:
-        left_contexts = []
-        right_contexts = []
-        for index, word in enumerate(c, 0):
-            left_temp = []
-            right_temp = []
-            # Get the left context
-            temp_index = index - 1
-            while (len(left_temp) < left_context_size):
-                if temp_index >= 0:
-                    left_temp.append(c[temp_index])
-                else:
-                    left_temp.append('<pad>')
-                temp_index -= 1
- 
-            left_temp.reverse()
-            left_contexts.append(' '.join(left_temp))
+    left_contexts = []
+    right_contexts = []
+    for index, word in enumerate(content, 0):
+        left_temp = []
+        right_temp = []
+        # Get the left context
+        temp_index = index - 1
+        while (len(left_temp) < left_context_size):
+            if temp_index >= 0:
+                left_temp.append(content[temp_index])
+            else:
+                left_temp.append('<pad>')
+            temp_index -= 1
 
-            # Get the right context
-            temp_index = index
-            while (len(right_temp) < right_context_size):
-                if temp_index < len(c):
-                    right_temp.append(c[temp_index])
-                else:
-                    right_temp.append('<pad>') 
-                temp_index += 1
+        left_temp.reverse()
+        left_contexts.append(' '.join(left_temp))
 
-            right_contexts.append(' '.join(right_temp))
-        docs.append((left_contexts, right_contexts))
-    return docs
+        # Get the right context
+        temp_index = index
+        while (len(right_temp) < right_context_size):
+            if temp_index < len(content):
+                right_temp.append(content[temp_index])
+            else:
+                right_temp.append('<pad>')
+            temp_index += 1
+
+        right_contexts.append(' '.join(right_temp))
+    return left_contexts, right_contexts
 
 
 

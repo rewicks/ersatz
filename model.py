@@ -17,6 +17,8 @@ class ErsatzTransformer(nn.Module):
             self.pos_embed = PositionalEncoding(embed_size=args.embed_size, dropout=args.dropout, max_len=(args.left_size + args.right_size))
             self.nhead = args.nhead
 
+        else:
+            self.transformer = False
         # embeds the input into a embed_size dimensional space
         self.src_emb = nn.Embedding(len(tokenizer), args.embed_size)
         self.embed_dropout = nn.Dropout(args.dropout)

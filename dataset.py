@@ -12,7 +12,7 @@ def page_generator(file_path, tokenizer=None):
     page = []
     with open(file_path) as input_file:
         for line in input_file:
-            if line != '\n':
+            if len(tokenizer.encode(line, out_type=str)) > 0:
                 line = line.strip()
                 line = tokenizer.encode(line, out_type=str)
                 new_line = []

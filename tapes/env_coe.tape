@@ -6,7 +6,7 @@ global {
 	cpuActionFlags=""
 	cpuResourceFlags="-l 'mem_free=10G, ram_free=10G'"
 
-	gpuActionFlags=""
-	gpuResourceFlags="-l 'gpu=1,h_rt=500:0:0' -q 'gpu.q'"
+	gpuActionFlags="-q gpu.q"
+	gpuResourceFlags="-l 'gpu=1,h_rt=500:0:0'"
 
 }

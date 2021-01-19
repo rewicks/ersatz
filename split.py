@@ -5,7 +5,6 @@ import dataset
 import sys
 from determiner import *
 
-
 # default args for loading models
 # should write something to merge default args with loaded args (overwrite when applicable)
 class DefaultArgs():
@@ -99,7 +98,7 @@ class EvalModel():
                 batches.append((remaining_data[0].t(), remaining_indices[0][0]))
             return batches
         else:
-            return None
+            return []
 
     def parallel_evaluation(self, content, batch_size, det=None):
         batches = self.batchify(content, batch_size, det)
@@ -114,7 +113,7 @@ class EvalModel():
             pred_ind = [indices[i].item() for i in pred_ind]
             eos.extend(pred_ind)
         if len(eos) == 0:
-            return content
+            yield content.strip()
         else:
             eos = sorted(eos)
             next_index = int(eos.pop(0))
@@ -132,8 +131,9 @@ class EvalModel():
                 else:
                     output.append(word)
                 counter += 1
-            output = self.tokenizer.merge(output, technique='utility').split('\n')
+            output = self.tokenizer.merge(output, technique='utility').strip().split('\n')
             yield '\n'.join([o.strip() for o in output])
+        yield ''
 
     def split(self, input_file, output_file, batch_size, det=None):
         for line in input_file:
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--delim', type=str, default='\t', help="Delimiter character. Default is tab")
     parser.add_argument('--text_ids', type=str, default=None, help="Columns to split (comma-separated; 0-indexed). If empty, plain-text")
     parser.add_argument('--batch_size', type=int, default=16, help="Batch size--predictions to make at once")
-    parser.add_argument('--determiner_type', default='en', choices=['en', 'multilingual', 'all'])
+    parser.add_argument('--determiner_type', default='multilingual', choices=['en', 'multilingual', 'all'])
 
     args = parser.parse_args()
 

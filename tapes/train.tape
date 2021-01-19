@@ -4,7 +4,7 @@ task train : ersatz
 	> out
 	:: left_size=@
 	:: right_size=@
-	:: vocabulary_path=@
+	:: vocab_path=@
 	:: batch_size=@
 	:: min_epochs=@
 	:: max_epochs=@
@@ -18,10 +18,14 @@ task train : ersatz
 	:: log_interval=@
 	:: validation_interval=@
 	:: eos_weight=@
-	{
+    :: pyenv=@ :: .submitter=$grid :: devices=@
+    :: devices_per_task=1
+    :: .resource_flags=$gpuResourceFlags :: .action_flags=$gpuActionFlags	
+    {
 	mkdir -p $out
 	PYTHONPATH=$ersatz python $ersatz/trainer.py \
-	--left_size=$left_size \
+	--sentencepiece_path=$vocab_path \
+    --left_size=$left_size \
 	--right_size=$right_size \
 	--output_path=$out \
 	--transformer_nlayers=$transformer_nlayers \
@@ -36,7 +40,8 @@ task train : ersatz
 	--log_interval=$log_interval \
 	--validation_interval=$validation_interval \
 	--eos_weight=$eos_weight \
-	$train_path \
+    --early_stopping=10 \
+    $train_path \
 	$valid_path
 }
 

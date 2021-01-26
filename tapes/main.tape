@@ -46,6 +46,25 @@ plan do_restart {
         (ActivationType: tanh)
 }
 
+plan do_modular {
+
+
+}
+
+
+plan do_weights {
+    reach train via (Scenario: en) *
+        (Vocabulary: en_2000_vocab) *
+        (LeftSize: 4) *
+        (RightSize: 2) *
+        (EmbedSize: 128) *
+        (TransformerLayers: 2) *
+        (LinearLayers: 1) *
+        (ActivationType: tanh) *
+        (EOSWeight: 1.0)
+}
+
+
 plan do_english_char_context_grid {
 	reach train via (Scenario: char_en) *
 		(LeftSize: 1 2 3 4 5 6 7 8 9 10) *

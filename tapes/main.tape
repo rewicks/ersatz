@@ -57,3 +57,22 @@ plan do_english_char_context_grid {
 		(EmbedSize: 256)
 }
 
+plan do_english_scoring {
+	reach score via (Scenario: char_en) *
+	    (Vocabulary: en_2000_vocab en_500_vocab en_125_vocab) *
+        (LeftSize: 2 4 6) *
+        (RightSize: 2 4) *
+        (EmbedSize: 32 64 128) *
+        (TransformerLayers: 2) *
+        (LinearLayers: 1) *
+        (ActivationType: tanh)
+    reach score via (Scenario: en) *
+        (Vocabulary: en_2000_vocab en_500_vocab en_125_vocab) *
+        (LeftSize: 2 4 6) *
+        (RightSize: 2 4) *
+        (EmbedSize: 32 64 128) *
+        (TransformerLayers: 0) *
+        (LinearLayers: 2) *
+        (ActivationType: tanh)
+}
+

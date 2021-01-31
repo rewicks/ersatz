@@ -4,9 +4,9 @@ global {
 	grid="sge"
 	location="coe"
 	cpuActionFlags=""
-	cpuResourceFlags="-l 'mem_free=10G, ram_free=10G'"
+	cpuResourceFlags="-l 'h_rt=100:0:0'"
 
-	gpuActionFlags="-q gpu.q"
+	gpuActionFlags="-q gpu.q -M rwicks@jhu.edu -m base"
 	gpuResourceFlags="-l 'gpu=1,h_rt=500:0:0'"
 
 }

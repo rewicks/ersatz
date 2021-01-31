@@ -1,0 +1,81 @@
+ducttape (version unknown)
+by Jonathan Clark
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+Loading workflow version history...
+Have 55 previous workflow versions
+Finding hyperpaths contained in plan...
+Found 8 vertices implied by realization plan do_ml_rachel_1 (Clause 1 of 2)
+Found 8 vertices implied by realization plan do_ml_rachel_1 (Clause 2 of 2)
+Union of all planned vertices has size 12
+Checking for completed tasks from versions 1 through 55...
+Finding packages...
+Found 1 packages
+Checking for already built packages (if this takes a long time, consider switching to a local-disk git clone instead of a remote repository)...
+Found existing version of package ersatz: VERSIONING_UNSUPPORTED
+Checking inputs...
+Work plan (depth-first traversal):
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.0+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.0+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.2+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.0+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.0+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+Retrieving code and building...
+Moving previous partial output to the attic...
+Executing tasks...
+Acquiring lock for train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56
+Acquiring lock for train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56
+Acquiring lock for train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56
+Acquiring lock for train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56
+Running train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab
+Running train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab
+Running train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab
+Running train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab
+Using submitter sge
+Using submitter sge
+Acquiring lock for train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56
+Acquiring lock for train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56
+Acquiring lock for train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56
+Acquiring lock for train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56
+Using submitter sge
+Using submitter sge
+Running train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+Running train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+Running train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+Running train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+Using submitter sge
+Using submitter sge
+Using submitter sge
+Using submitter sge
+train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab: cat: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/exitcode: No such file or directory
+Failed train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56: Task train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 failed
+train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab: error: getpwuid_r() for uid 1722 returned: (2) No such file or directory
+train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab: cat: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/exitcode: No such file or directory
+Failed train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56: Task train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 failed
+Completed train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56
+train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab: cat: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/exitcode: No such file or directory
+train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab: cat: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/exitcode: No such file or directory
+train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab: cat: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/exitcode: No such file or directory
+train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab: cat: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/exitcode: No such file or directory
+Failed train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56: Task train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 failed
+Failed train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56: Task train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 failed
+Failed train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56: Task train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 failed
+Failed train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56: Task train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 failed
+train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab: cat: /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/exitcode: No such file or directory
+Failed train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56: Task train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 failed
+The following tasks failed:
+FAILED: train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+FAILED: train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+FAILED: train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+FAILED: train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab
+FAILED: train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.128+LeftSize.4+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab
+FAILED: train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab
+FAILED: train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/56 in /exp/rwicks/ersatz/exp/ducttape/train/EOSWeight.20.0+EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+ERROR: Task train/EOSWeight.20.0+EmbedSize.128+LeftSize.6+LinearLayers.2+RightSize.4+Scenario.multilingual+Vocabulary.ml_12000_vocab/56 failed
+EXITING: Cleaning up lock files...
+
+

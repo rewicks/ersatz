@@ -55,18 +55,20 @@ submitter sge :: action_flags
 set +u  # needed to fix a virtualenv bug
 if [[ ! -z \${pyenv:-} ]]; then
   virtualenv=\$pyenv
-
+  source deactivate
+  source activate /home/hltcoe/rwicks/.conda/envs/ersatz
   # Load the environment
-  if [[ \$virtualenv == conda:* ]]; then
-    # I don't think we need this if we just do source activate
-    # . /etc/profile.d/conda.sh
-    target=\$(echo \$virtualenv | cut -d: -f2-)
-    source deactivate
-    source activate \$target
-    #conda activate \$target
-  else
-    source \$virtualenv
-  fi
+  #if [[ \$virtualenv == conda:* ]]; then
+  #  # I don't think we need this if we just do source activate
+  #  # . /etc/profile.d/conda.sh
+  #  #source ~rwicks/.bashrc
+  #  target=\$(echo \$virtualenv | cut -d: -f2-)
+  #  source deactivate
+  #  source activate \$target
+  #  #conda activate \$target
+  #else
+  #  source \$virtualenv
+  #fi
 fi
 set -u
 

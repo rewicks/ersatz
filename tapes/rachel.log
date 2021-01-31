@@ -1,0 +1,49 @@
+ducttape (version unknown)
+by Jonathan Clark
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+Loading workflow version history...
+Have 50 previous workflow versions
+Finding hyperpaths contained in plan...
+Found 8 vertices implied by realization plan do_ml_rachel (Clause 1 of 2)
+Found 8 vertices implied by realization plan do_ml_rachel (Clause 2 of 2)
+Union of all planned vertices has size 8
+Checking for completed tasks from versions 1 through 50...
+Task incomplete: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.32+LeftSize.6+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab): Exit code file does not exist
+Task incomplete: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.128+LeftSize.6+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab): Exit code file does not exist
+Task incomplete: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.32+LeftSize.4+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab): Exit code file does not exist
+Task incomplete: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.128+LeftSize.4+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab): Exit code file does not exist
+Finding packages...
+Found 1 packages
+Checking for already built packages (if this takes a long time, consider switching to a local-disk git clone instead of a remote repository)...
+Found existing version of package ersatz: VERSIONING_UNSUPPORTED
+Checking inputs...
+Work plan (depth-first traversal):
+DELETE: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.32+LeftSize.6+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+DELETE: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.128+LeftSize.6+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+DELETE: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.32+LeftSize.4+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+DELETE: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.128+LeftSize.4+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.32+LeftSize.6+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.128+LeftSize.6+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.32+LeftSize.4+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+RUN: /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab (ActivationType.tanh+EOSWeight.10.0+EmbedSize.128+LeftSize.4+LinearLayers.1+NHead.8+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab)
+Retrieving code and building...
+Moving previous partial output to the attic...
+Removing broken partial output for train/EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51
+Removing broken partial output for train/EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51
+Removing broken partial output for train/EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51
+Removing broken partial output for train/EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51
+Executing tasks...
+Acquiring lock for train/EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51
+Acquiring lock for train/EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51
+Running train/EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51 in /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.128+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+Running train/EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51 in /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.32+LeftSize.6+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+Using submitter sge
+Using submitter sge
+Acquiring lock for train/EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51
+Acquiring lock for train/EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51
+Running train/EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51 in /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.128+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+Running train/EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab/51 in /exp/rwicks/ersatz/exp/ducttape/train/EmbedSize.32+LeftSize.4+LinearLayers.1+RightSize.4+Scenario.multilingual+TransformerLayers.2+Vocabulary.ml_12000_vocab
+Using submitter sge
+Using submitter sge

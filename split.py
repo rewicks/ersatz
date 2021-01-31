@@ -32,8 +32,9 @@ def detokenize(input_string):
     return input_string
 
 class EvalModel():
-    def __init__(self, model_path):
-        if torch.cuda.is_available():
+    def __init__(self, model_path, args):
+        if torch.cuda.is_available() and not args.cpu:
+            print('Using gpu', file=sys.stderr)
             self.model = load_model(model_path)
             if type(self.model) is torch.nn.DataParallel:
                 self.model = self.model.module
@@ -42,6 +43,7 @@ class EvalModel():
             if torch.cuda.device_count() > 1:
                 self.model = torch.nn.DataParallel(self.model)
         else:
+            print('Using cpu', file=sys.stderr)
             self.model = load_model(model_path)
             if type(self.model) is torch.nn.DataParallel:
                 self.model = self.model.module
@@ -100,7 +102,7 @@ class EvalModel():
         else:
             return []
 
-    def parallel_evaluation(self, content, batch_size, det=None):
+    def parallel_evaluation(self, content, batch_size, det=None, min_sent_length=3):
         batches = self.batchify(content, batch_size, det)
         eos = []
         for contexts, indices, in batches:
@@ -122,12 +124,14 @@ class EvalModel():
             counter = 0
             for index, word in enumerate(this_content):
                 if counter == next_index:
-                    output.append('\n')
-                    output.append(word)
                     try:
                         next_index = int(eos.pop(0))
                     except:
-                        next_index = -1
+                        next_index = len(content)-1
+                    if (next_index - counter >= 5):
+                        output.append('\n')
+                    output.append(word)
+                    
                 else:
                     output.append(word)
                 counter += 1
@@ -176,6 +180,7 @@ if __name__ == '__main__':
     parser.add_argument('--text_ids', type=str, default=None, help="Columns to split (comma-separated; 0-indexed). If empty, plain-text")
     parser.add_argument('--batch_size', type=int, default=16, help="Batch size--predictions to make at once")
     parser.add_argument('--determiner_type', default='multilingual', choices=['en', 'multilingual', 'all'])
+    parser.add_argument('--cpu', action='store_true')
 
     args = parser.parse_args()
 
@@ -196,10 +201,12 @@ if __name__ == '__main__':
     else:
         output_file = sys.stdout
 
-    model = EvalModel(args.model_path)
+    model = EvalModel(args.model_path, args)
 
-    if args.text_ids is None:
-        model.split(input_file, output_file, args.batch_size, det=determiner)
-    else:
-        text_ids = [int(t) for t in args.text_ids.split(',')]
-        model.split_delimiter(input_file, output_file, args.batch_size, args.delim, text_ids, det=determiner)
+    with torch.no_grad():
+        if args.text_ids is None:
+            model.split(input_file, output_file, args.batch_size, det=determiner)
+        else:
+            text_ids = [int(t) for t in args.text_ids.split(',')]
+            model.split_delimiter(input_file, output_file, args.batch_size, args.delim, text_ids, det=determiner)
+    print('complete', file=sys.stderr)

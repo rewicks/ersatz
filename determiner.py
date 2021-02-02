@@ -40,7 +40,6 @@ ending_punc = {
     '\uFF61',
     '\uFF0E',
     '\u2026',
-    '\u003B' # semicolon
 }
 
 closing_punc = {

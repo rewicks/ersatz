@@ -54,8 +54,8 @@ submitter sge :: action_flags
 
 set +u  # needed to fix a virtualenv bug
 if [[ ! -z \${pyenv:-} ]]; then
-  virtualenv=\$pyenv
-  source deactivate
+  #virtualenv=\$pyenv
+  #source deactivate
   source activate /home/hltcoe/rwicks/.conda/envs/ersatz
   # Load the environment
   #if [[ \$virtualenv == conda:* ]]; then
@@ -65,7 +65,7 @@ if [[ ! -z \${pyenv:-} ]]; then
   #  target=\$(echo \$virtualenv | cut -d: -f2-)
   #  source deactivate
   #  source activate \$target
-  #  #conda activate \$target
+    #conda activate \$target
   #else
   #  source \$virtualenv
   #fi
@@ -87,7 +87,7 @@ EOF
     echo "echo" >> $wrapper
     echo "echo SGE in ENV:" >> $wrapper
     echo "env | grep SGE" >> $wrapper
-    echo "nvidia-smi" >> $wrapper
+    #echo "nvidia-smi" >> $wrapper
     echo >> $wrapper
 
     echo "$COMMANDS" >> $wrapper

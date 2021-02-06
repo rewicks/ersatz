@@ -81,7 +81,7 @@ plan do_wikipedia {
         (TransformerLayers: 2) *
         (LinearLayers: 1) *
         (ActivationType: tanh) *
-        (EOSWeight: 1.0 5.0 10.0 15.0 20.0 25.0 30.0)
+        (EOSWeight: 40.0 50.0 60.0)
 }
 
 plan do_shuffled {
@@ -118,17 +118,6 @@ plan do_ml_liz {
 }
 
 
-plan do_ml {
-    reach train via (Scenario: multilingual) *
-                (Vocabulary: ml_12000_vocab) *
-                (LeftSize: 6) *
-                (RightSize: 4) *
-                (EmbedSize: 128) *
-                (TransformerLayers: 4) *
-                (LinearLayers: 1) *
-                (ActivationType: tanh) *
-                (EOSWeight: 5.0 10.0 30.0)
-}
 
 
 plan do_weights {
@@ -174,29 +163,25 @@ plan do_english_scoring {
         (ActivationType: tanh)
 }
 
-plan do_ml_score {
+plan do_ml {
     reach score via (Scenario: multilingual) *
                 (Vocabulary: ml_12000_vocab) *
-                (LeftSize: 6) *
-                (RightSize: 4) *
-                (EmbedSize: 128) *
+                (LeftSize: 8) *
+                (RightSize: 6) *
+                (EmbedSize: 256 512) *
                 (TransformerLayers: 2) *
                 (LinearLayers: 1) *
                 (ActivationType: tanh) *
-                (EOSWeight: 20.0)
-}
-
-
-plan do_large_ml_score {
+                (EOSWeight: 30.0)
     reach score via (Scenario: multilingual_large) *
                 (Vocabulary: ml_12000_vocab) *
-                (LeftSize: 6) *
-                (RightSize: 4) *
-                (EmbedSize: 128) *
+                (LeftSize: 8) *
+                (RightSize: 6) *
+                (EmbedSize: 256 512) *
                 (TransformerLayers: 2) *
                 (LinearLayers: 1) *
                 (ActivationType: tanh) *
-                (EOSWeight: 20.0)
+                (EOSWeight: 30.0)
 }
 
 plan do_baselines {

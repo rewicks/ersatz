@@ -1,12 +1,14 @@
 global {
-	batch_size=25000
-	min_epochs=25
+	log_dir="/exp/rwicks/ersatz/exp/runs"
+    batch_size=25000
+	min_epochs=10
 	max_epochs=1000
 	lr=0.0001
 	dropout=0.1
 	log_interval=1000
-	validation_interval=25000
-	left_size=(LeftSize: 1 2 6 8)
+	validation_interval=100000
+    early_stopping=10
+	left_size=(LeftSize: 1 2 4 6 8)
 	right_size=(RightSize: 1 2 4 6)
 	embed_size=(EmbedSize: 16 32 64 128 256 512)
 	transformer_nlayers=(TransformerLayers: 0 2 4)

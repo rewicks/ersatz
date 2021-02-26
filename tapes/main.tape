@@ -164,24 +164,24 @@ plan do_english_scoring {
 }
 
 plan do_ml {
-    reach score via (Scenario: multilingual) *
+    reach train via (Scenario: multilingual) *
                 (Vocabulary: ml_12000_vocab) *
-                (LeftSize: 8) *
-                (RightSize: 6) *
-                (EmbedSize: 256 512) *
+                (LeftSize: 4 6) *
+                (RightSize: 4 6) *
+                (EmbedSize: 128 256) *
                 (TransformerLayers: 2) *
                 (LinearLayers: 1) *
                 (ActivationType: tanh) *
                 (EOSWeight: 30.0)
-    reach score via (Scenario: multilingual_large) *
-                (Vocabulary: ml_12000_vocab) *
-                (LeftSize: 8) *
-                (RightSize: 6) *
-                (EmbedSize: 256 512) *
-                (TransformerLayers: 2) *
-                (LinearLayers: 1) *
-                (ActivationType: tanh) *
-                (EOSWeight: 30.0)
+#    reach score via (Scenario: multilingual_large) *
+#                (Vocabulary: ml_12000_vocab) *
+#                (LeftSize: 8) *
+#                (RightSize: 6) *
+#                (EmbedSize: 256 512) *
+#                (TransformerLayers: 2) *
+#                (LinearLayers: 1) *
+#                (ActivationType: tanh) *
+#                (EOSWeight: 30.0)
 }
 
 plan do_baselines {

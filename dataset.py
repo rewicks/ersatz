@@ -5,7 +5,7 @@ import torch
 import random
 import json
 from subword import Vocabulary, SentencePiece
-
+from determiner import MultilingualPunctuation
 # iterates over a file and yields one doc at a time with the appropriately
 # labelled splits; documents are separated by empty lines
 def page_generator(file_path, tokenizer=None):
@@ -30,6 +30,8 @@ def page_generator(file_path, tokenizer=None):
 # writes it out to a new file
 def split_train_file(file_paths, tokenizer, output_path=None, left_context_size=5, right_context_size=5, eos_percent=0.25, sub_sample_percent=0.1):
     random.seed(14)
+
+    det = MultilingualPunctuation()
 
     with open(output_path, 'w') as f:
         for file_path in file_paths:
@@ -62,8 +64,9 @@ def split_train_file(file_paths, tokenizer, output_path=None, left_context_size=
                                 else:
                                     right_temp.append('<pad>')
                                 temp_index += 1
-
-                            f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
+        
+                            if det(' '.join(left_temp), ' '.join(right_temp)):
+                                f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
 
 
 # split test files

@@ -5,6 +5,7 @@ task train : ersatz
 	:: left_size=@
 	:: right_size=@
 	:: vocab_path=@
+    :: languages=@
 	:: batch_size=@
 	:: min_epochs=@
 	:: max_epochs=@
@@ -28,8 +29,9 @@ task train : ersatz
     LOGEXT=$(echo $out | rev | cut -d'/' -f2 | rev)
     LOGDIR=$log_dir"/"$LOGEXT
 	rm -rf $LOGDIR
+    VOCAB_PATH=$vocab_path$languages".model"
     PYTHONPATH=$ersatz python $ersatz/trainer.py \
-    --sentencepiece_path=$vocab_path \
+    --sentencepiece_path=$VOCAB_PATH \
     --left_size=$left_size \
     --right_size=$right_size \
     --output_path=$out \

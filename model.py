@@ -45,9 +45,9 @@ class ErsatzTransformer(nn.Module):
     def forward(self, src, factors=None):
         if self.transformer:
             src = src.t()
-            factors = factors.t()
             src = self.src_emb(src)
             if factors is not None:
+                factors = factors.t()
                 src = torch.cat((src, self.fact_emb(factors)), dim=2)
             embed = self.pos_embed(src * math.sqrt(self.embed_size+self.factor_embed_size))
             embed = self.encoder(embed).transpose(0,1)

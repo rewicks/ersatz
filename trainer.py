@@ -147,8 +147,8 @@ class ErsatzTrainer():
         self.criterion = nn.NLLLoss(weight=weights)
         self.lr = args.lr
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
-        self.scheduler = WarmupScheduler(self.optimizer, 1.0, args.warmup, self.lr, gamma=0.95)
-        #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 1.0, gamma=0.95)
+        #self.scheduler = WarmupScheduler(self.optimizer, 1.0, args.warmup, self.lr, gamma=0.95)
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 1.0, gamma=0.95)
 
         total_params = sum([p.numel() for p in self.model.parameters()])
         logging.info(f'Training with: {total_params}')
@@ -157,7 +157,7 @@ class ErsatzTrainer():
             self.model = nn.DataParallel(self.model) 
             self.model = self.model.cuda()
 
-    def validate(self, batch_size, determiner):
+    def validate(self, batch_size, determiner, use_factors=False):
         retVal = {}
         retVal['num_obs_eos'] = 0
         retVal['num_pred_eos'] = 0
@@ -176,7 +176,10 @@ class ErsatzTrainer():
         with torch.no_grad():
             for i, (contexts, factors, labels, context_strings) in enumerate(self.validation_set.batchify(batch_size)):
                 data = contexts.to(self.device)
-                factors = factors.to(self.device)
+                if use_factors:
+                    factors = factors.to(self.device)
+                else:
+                    factors = None
                 labels = labels.to(self.device)
                 output = self.model.forward(data, factors=factors)
                 loss = self.criterion(output, labels)
@@ -233,13 +236,17 @@ class ErsatzTrainer():
 
     def run_epoch(self, epoch, batch_size, log_interval, validation_interval, results, best_model,
                   min_epochs = 10,
-                  validation_threshold=10):
+                  validation_threshold=10,
+                  use_factors=False):
 
         eos_ind = 0
         mos_ind = 1
         for i, (contexts, factors, labels, context_strings) in enumerate(self.training_set.batchify(batch_size)):
             data = contexts.to(self.device)
-            factors = factors.to(self.device)
+            if use_factors:
+                factors = factors.to(self.device)
+            else:
+                factors = None
             labels = labels.to(self.device)
             output = self.model.forward(data, factors=factors)
             loss = self.criterion(output, labels)
@@ -264,7 +271,7 @@ class ErsatzTrainer():
                 results.reset(time.time())
 
             if i % validation_interval == 1:
-                stats = self.validate(batch_size, global_determiner)
+                stats = self.validate(batch_size, global_determiner, use_factors=use_factors)
                 stats['type'] = 'VALIDATION'
                 results.validated()
                 stats['average_loss'] = stats['total_loss']/stats['num_pred']
@@ -367,7 +374,7 @@ if __name__ == '__main__':
         trainer.model.train()
         res, status, best_model = trainer.run_epoch(epoch, args.batch_size, args.log_interval, args.validation_interval, results, best_model,
                                                     min_epochs=args.min_epochs,
-                                                    validation_threshold=args.early_stopping)
+                                                    validation_threshold=args.early_stopping, use_factors=args.source_factors)
         if res == 0 and epoch > args.min_epochs:
             break
         trainer.scheduler.step()

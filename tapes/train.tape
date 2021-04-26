@@ -31,17 +31,16 @@ task train : ersatz
     LOGDIR=$log_dir"/"$LOGEXT
 	rm -rf $LOGDIR
 
-    function has-space {
-  	[[ "$1" != "${1%[[:space:]]*}" ]] && return 0 || return 1
-	}
-	if has-space $languages; then
+	if [[ $languages != "${languages%[[:space:]]*}" ]]; then
 		VOCAB_PATH=$vocab_path"multilingual.model"
 	else
 		VOCAB_PATH=$vocab_path$languages".model"
 	fi
-
+    
+    echo $factor_embed_size
     if [$factor_embed_size = "0"]; then
     	FACT_VALUE="--source_factors"
+        echo "$FACT_VALUE"
     else
     	FACT_VALUE=""
     fi

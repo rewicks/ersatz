@@ -31,14 +31,15 @@ task make_train_data : ersatz
     :: .resource_flags=$cpuResourceFlags :: .action_flags=$cpuActionFlags
     > out_og out_shuffle
 	{
-    TRAIN_DATA_PATH="/exp/rwicks/ersatz/data/concat/train/$languages"
-    function has-space {
-  	[[ "$1" != "${1%[[:space:]]*}" ]] && return 0 || return 1
-	}
-	if has-space $languages; then
-		VOCAB_PATH=$vocab_path"multilingual.model"
-	else
+    if [[ $languages != "${languages}%[[:space:]]*}" ]]; then
+        VOCAB_PATH=$vocab_path"multilingual.model"
+        TRAIN_DATA_PATH=""
+        for lang in $languages; do
+            TRAIN_DATA_PATH="${TRAIN_DATA_PATH} /exp/rwicks/ersatz/data/concat/train/$lang"
+        done
+    else
 		VOCAB_PATH=$vocab_path$languages".model"
+        TRAIN_DATA_PATH="/exp/rwicks/ersatz/data/concat/train/$languages"
 	fi
     PYTHONPATH=. python $ersatz/dataset.py \
 		--sentencepiece_path $VOCAB_PATH \
@@ -57,15 +58,16 @@ task make_valid_data : ersatz
     :: .resource_flags=$cpuResourceFlags :: .action_flags=$cpuActionFlags
 	> out_og out_shuffle
 	{
-    VALID_DATA_PATH="/exp/rwicks/ersatz/data/concat/dev/$languages"
-    function has-space {
-  	[[ "$1" != "${1%[[:space:]]*}" ]] && return 0 || return 1
-	}
-	if has-space $languages; then
-		VOCAB_PATH=$vocab_path"multilingual.model"
-	else
+    if [[ $languages != "${languages}%[[:space:]]*}" ]]; then
+        VOCAB_PATH=$vocab_path"multilingual.model"
+        VALID_DATA_PATH=""
+        for lang in $languages; do
+            VALID_DATA_PATH="${VALID_DATA_PATH} /exp/rwicks/ersatz/data/concat/dev/$lang"
+        done
+    else
 		VOCAB_PATH=$vocab_path$languages".model"
-	fi
+	    VALID_DATA_PATH="/exp/rwicks/ersatz/data/concat/dev/$languages"
+    fi
 	PYTHONPATH=. python $ersatz/dataset.py \
         --sentencepiece_path $VOCAB_PATH \
 		--left-size $left_size \

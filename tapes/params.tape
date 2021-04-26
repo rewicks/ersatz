@@ -17,6 +17,6 @@ global {
 	activation_type=(ActivationType: tanh)
 	nhead=(NHead: 8)
 	eos_weight=(EOSWeight: 10.0 20.0 1.0 5.0 0.1 0.2)
-	vocab_path=(Vocabulary: v500="/exp/rwicks/models/spm/unigram/ersatz.500.",
+	vocab_path=(Vocabulary: v500="/exp/rwicks/models/spm/unigram/ersatz.500."
 							v12000="/exp/rwicks/models/spm/unigram/ersatz.12000.")
 }

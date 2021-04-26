@@ -32,7 +32,14 @@ task make_train_data : ersatz
     > out_og out_shuffle
 	{
     TRAIN_DATA_PATH="/exp/rwicks/ersatz/data/concat/train/$languages"
-	VOCAB_PATH=$vocab_path$languages".model"
+    function has-space {
+  	[[ "$1" != "${1%[[:space:]]*}" ]] && return 0 || return 1
+	}
+	if has-space $languages; then
+		VOCAB_PATH=$vocab_path"multilingual.model"
+	else
+		VOCAB_PATH=$vocab_path$languages".model"
+	fi
     PYTHONPATH=. python $ersatz/dataset.py \
 		--sentencepiece_path $VOCAB_PATH \
         --left-size $left_size \
@@ -51,7 +58,14 @@ task make_valid_data : ersatz
 	> out_og out_shuffle
 	{
     VALID_DATA_PATH="/exp/rwicks/ersatz/data/concat/dev/$languages"
-    VOCAB_PATH=$vocab_path$languages".model"
+    function has-space {
+  	[[ "$1" != "${1%[[:space:]]*}" ]] && return 0 || return 1
+	}
+	if has-space $languages; then
+		VOCAB_PATH=$vocab_path"multilingual.model"
+	else
+		VOCAB_PATH=$vocab_path$languages".model"
+	fi
 	PYTHONPATH=. python $ersatz/dataset.py \
         --sentencepiece_path $VOCAB_PATH \
 		--left-size $left_size \

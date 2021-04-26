@@ -179,7 +179,7 @@ plan do_english_scoring {
 
 plan do_ml {
     reach score via (Scenario: multilingual) *
-                (Vocabulary: ml_12000_vocab) *
+                (Vocabulary: v12000) *
                 (LeftSize: 6) *
                 (RightSize: 4) *
                 (EmbedSize: 128) *

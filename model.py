@@ -57,7 +57,7 @@ class ErsatzTransformer(nn.Module):
         else:
             embed = self.src_emb(src)
             if factors is not None:
-                embed = torch.concat(src, self.fact_emb(factors), dim=2)
+                embed = torch.cat((embed, self.fact_emb(factors)), dim=2)
             embed = self.embed_dropout(embed)
         output = self.embed_dropout(embed)
         return self.generator(output)

@@ -138,11 +138,11 @@ if __name__ == '__main__':
 class SourceFactors():
     def __init__(self):
         self.codes = {
-            'TITLE': 0,
+            'UNMARK': 0,
             'CAP': 1,
             'LOWER': 2,
             'PUNC': 3,
-            'UNMARK': 4,
+            'TITLE': 4,
             'NUMBER': 5
         }
         pass

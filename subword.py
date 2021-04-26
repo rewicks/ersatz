@@ -59,19 +59,24 @@ class Vocabulary():
 
     def context_to_tensor(self, contexts):
         con_arr = []
+        fact_arr = []
         lab_arr = []
-        for left, right, label in contexts:
+        for left, left_stream, right, right_stream, label in contexts:
             tens = []
             for l in left.split():
                 tens.append(self.embed_word(l))
             for r in right.split():
                 tens.append(self.embed_word(r))
             con_arr.append(tens)
+
+            fact_arr.append(left_stream + right_stream)
+
             if label == "<eos>":
                 lab_arr.append(0)
             else:
                 lab_arr.append(1)
-        return torch.tensor(con_arr), torch.tensor(lab_arr)
+
+        return torch.tensor(con_arr), torch.tensor(fact_arr), torch.tensor(lab_arr)
 
 class SentencePiece(Vocabulary):
     """

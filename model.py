@@ -8,13 +8,19 @@ class ErsatzTransformer(nn.Module):
     def __init__(self, tokenizer, args):
         super(ErsatzTransformer, self).__init__()
 
+        self.factor_embed_size = 0
+        if args.source_factors:
+            self.fact_emb = nn.Embedding(6, args.factor_embed_size)
+            self.factor_embed_size = args.factor_embed_size
+
+
         if args.transformer_nlayers > 0:
             self.transformer = True
             # each layer of the transformer
-            encoder_layer = nn.TransformerEncoderLayer(args.embed_size, args.nhead, dropout=args.dropout)
+            encoder_layer = nn.TransformerEncoderLayer(args.embed_size+self.factor_embed_size, args.nhead, dropout=args.dropout)
             # build the transformer with n of the previous layers
             self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=args.transformer_nlayers)
-            self.pos_embed = PositionalEncoding(embed_size=args.embed_size, dropout=args.dropout, max_len=(args.left_size + args.right_size))
+            self.pos_embed = PositionalEncoding(embed_size=args.embed_size+self.factor_embed_size, dropout=args.dropout, max_len=(args.left_size + args.right_size))
             self.nhead = args.nhead
 
         else:
@@ -33,16 +39,22 @@ class ErsatzTransformer(nn.Module):
         self.embed_size = args.embed_size
         self.max_size = args.left_size + args.right_size
         self.args = args
-        self.generator = Generator(args.embed_size, self.max_size,
+        self.generator = Generator(self.embed_size+self.factor_embed_size, self.max_size,
                                    nlayers=args.linear_nlayers, activation_type=args.activation_type)
 
-    def forward(self, src):
+    def forward(self, src, factors=None):
         if self.transformer:
             src = src.t()
-            embed = self.pos_embed(self.src_emb(src) * math.sqrt(self.embed_size))
+            factors = factors.t()
+            src = self.src_emb(src)
+            if factors is not None:
+                src = torch.cat((src, self.fact_emb(factors)), dim=2)
+            embed = self.pos_embed(src * math.sqrt(self.embed_size+self.factor_embed_size))
             embed = self.encoder(embed).transpose(0,1)
         else:
             embed = self.src_emb(src)
+            if factors is not None:
+                embed = torch.concat(src, self.fact_emb(factors), dim=2)
             embed = self.embed_dropout(embed)
         output = self.embed_dropout(embed)
         return self.generator(output)

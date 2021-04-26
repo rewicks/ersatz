@@ -11,6 +11,7 @@ global {
 	left_size=(LeftSize: 1 2 4 6 8)
 	right_size=(RightSize: 1 2 4 6)
 	embed_size=(EmbedSize: 16 32 64 128 256 512)
+	factor_embed_size=(FactSize: 0 8 16)
 	transformer_nlayers=(TransformerLayers: 0 2 4)
     linear_nlayers=(LinearLayers: 0 1 2)
 	activation_type=(ActivationType: tanh)

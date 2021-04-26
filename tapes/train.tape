@@ -14,6 +14,7 @@ task train : ersatz
 	:: lr=@
 	:: dropout=@
 	:: embed_size=@
+	:: factor_embed_size=@
 	:: activation_type=@
 	:: nhead=@
 	:: log_interval=@
@@ -30,6 +31,13 @@ task train : ersatz
     LOGDIR=$log_dir"/"$LOGEXT
 	rm -rf $LOGDIR
     VOCAB_PATH=$vocab_path$languages".model"
+
+    if [$factor_embed_size = "0"]; then
+    	FACT_VALUE="--source_factors"
+    else
+    	FACT_VALUE=""
+    fi
+
     PYTHONPATH=$ersatz python $ersatz/trainer.py \
     --sentencepiece_path=$VOCAB_PATH \
     --left_size=$left_size \
@@ -43,6 +51,7 @@ task train : ersatz
     --lr=$lr \
     --dropout=$dropout \
     --embed_size=$embed_size \
+    --factor_embed_size=$factor_embed_size $FACT_VALUE \
     --nhead=$nhead \
     --log_interval=$log_interval \
     --validation_interval=$validation_interval \

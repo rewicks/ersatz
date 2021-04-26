@@ -11,6 +11,7 @@ import os
 import logging
 import math
 import json
+from scheduler import WarmupScheduler
 
 logging.basicConfig(format="%(levelname)s : %(message)s", level=logging.INFO)
 
@@ -146,7 +147,8 @@ class ErsatzTrainer():
         self.criterion = nn.NLLLoss(weight=weights)
         self.lr = args.lr
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 1.0, gamma=0.95)
+        self.scheduler = WarmupScheduler(self.optimizer, 1.0, args.warmup, self.lr, gamma=0.95)
+        #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 1.0, gamma=0.95)
 
         total_params = sum([p.numel() for p in self.model.parameters()])
         logging.info(f'Training with: {total_params}')
@@ -172,10 +174,11 @@ class ErsatzTrainer():
         eos_ind = 0
         mos_ind = 1
         with torch.no_grad():
-            for i, (contexts, labels, context_strings) in enumerate(self.validation_set.batchify(batch_size)):
+            for i, (contexts, factors, labels, context_strings) in enumerate(self.validation_set.batchify(batch_size)):
                 data = contexts.to(self.device)
+                factors = factors.to(self.device)
                 labels = labels.to(self.device)
-                output = self.model.forward(data)
+                output = self.model.forward(data, factors=factors)
                 loss = self.criterion(output, labels)
                 perplexity = torch.exp(F.cross_entropy(output, labels)).item()
                 pred = output.argmax(1)
@@ -234,10 +237,11 @@ class ErsatzTrainer():
 
         eos_ind = 0
         mos_ind = 1
-        for i, (contexts, labels, context_strings) in enumerate(self.training_set.batchify(batch_size)):
+        for i, (contexts, factors, labels, context_strings) in enumerate(self.training_set.batchify(batch_size)):
             data = contexts.to(self.device)
+            factors = factors.to(self.device)
             labels = labels.to(self.device)
-            output = self.model.forward(data)
+            output = self.model.forward(data, factors=factors)
             loss = self.criterion(output, labels)
             ppl = torch.exp(F.cross_entropy(output, labels)).item()
             pred = output.argmax(1)
@@ -248,6 +252,7 @@ class ErsatzTrainer():
             loss.backward()
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
             self.optimizer.step()
+            self.scheduler.step()
         
             if i % log_interval == 1:
                 status = results.get_results(self.scheduler.get_lr()[0]) 
@@ -319,8 +324,11 @@ if __name__ == '__main__':
     parser.add_argument('--output_path', type=str, default='models')
     parser.add_argument('--checkpoint_path', type=str)
     parser.add_argument('--lr', type=float, default=0.0001)
+    parser.add_argument('--warmup', type=int, default=4000)
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--embed_size', type=int, default=256)
+    parser.add_argument('--source_factors', action='store_true')
+    parser.add_argument('--factor_embed_size', type=int, default=8)
     parser.add_argument('--transformer_nlayers', type=int, default=2)
     parser.add_argument('--linear_nlayers', type=int, default=0)
     parser.add_argument('--activation_type', type=str, default="tanh", choices=["tanh"])

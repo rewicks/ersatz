@@ -186,7 +186,8 @@ plan do_ml {
                 (TransformerLayers: 2) *
                 (LinearLayers: 1) *
                 (ActivationType: tanh) *
-                (EOSWeight: 1.0 5.0 0.2 10.0 0.1)
+                (EOSWeight: 1.0 5.0 0.2 10.0 0.1) *
+                (FactSize: 0 8 16)
 #    reach score via (Scenario: multilingual_large) *
 #                (Vocabulary: ml_12000_vocab) *
 #                (LeftSize: 8) *

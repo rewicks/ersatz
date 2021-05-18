@@ -27,3 +27,12 @@ To split `.tsv` file:
 ```angular2html
 cat unsegmented.tsv | split.py ersatz.model --text_ids 1 > sentences.txt
 ```
+
+# Scoring a Model's Output
+
+```angular2html
+python score.py [gold_standard_file_path] [file_to_score]
+```
+
+(There are legacy arguments, but they're not used)
+

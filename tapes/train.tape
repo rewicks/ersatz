@@ -1,10 +1,10 @@
 task train : ersatz
 	< train_path=$out_shuffle@make_train_data
 	< valid_path=$out_shuffle@make_valid_data
-	> out
+	< vocab_path=$model@train_vocab
+    > out
 	:: left_size=@
 	:: right_size=@
-	:: vocab_path=@
     :: languages=@
 	:: batch_size=@
 	:: min_epochs=@
@@ -14,6 +14,7 @@ task train : ersatz
 	:: lr=@
 	:: dropout=@
 	:: embed_size=@
+    :: factor_embed_size=@
 	:: activation_type=@
 	:: nhead=@
 	:: log_interval=@
@@ -25,31 +26,39 @@ task train : ersatz
     :: devices_per_task=1
     :: .resource_flags=$gpuResourceFlags :: .action_flags=$gpuActionFlags	
     {
-	mkdir -p $out
-    LOGEXT=$(echo $out | rev | cut -d'/' -f2 | rev)
-    LOGDIR=$log_dir"/"$LOGEXT
-	rm -rf $LOGDIR
-    VOCAB_PATH=$vocab_path$languages".model"
-    PYTHONPATH=$ersatz python $ersatz/trainer.py \
-    --sentencepiece_path=$VOCAB_PATH \
-    --left_size=$left_size \
-    --right_size=$right_size \
-    --output_path=$out \
-    --transformer_nlayers=$transformer_nlayers \
-    --activation_type=$activation_type \
-    --linear_nlayers=$linear_nlayers \
-    --min-epochs=$min_epochs \
-    --max-epochs=$max_epochs \
-    --lr=$lr \
-    --dropout=$dropout \
-    --embed_size=$embed_size \
-    --nhead=$nhead \
-    --log_interval=$log_interval \
-    --validation_interval=$validation_interval \
-    --eos_weight=$eos_weight \
-    --early_stopping=$early_stopping \
-    --tb_dir=$LOGDIR \
-    $train_path \
-    $valid_path
+        mkdir -p $out
+        LOGEXT=$(echo $out | rev | cut -d'/' -f2 | rev)
+        LOGDIR=$log_dir"/"$LOGEXT
+        rm -rf $LOGDIR
+
+        if [$factor_embed_size = "0"]; then
+            FACT_VALUE="--source_factors"
+            echo "$FACT_VALUE"
+        else
+            FACT_VALUE=""
+        fi
+
+        PYTHONPATH=$ersatz python $ersatz/trainer.py \
+        --sentencepiece_path=$vocab_path \
+        --left_size=$left_size \
+        --right_size=$right_size \
+        --output_path=$out \
+        --transformer_nlayers=$transformer_nlayers \
+        --activation_type=$activation_type \
+        --linear_nlayers=$linear_nlayers \
+        --min-epochs=$min_epochs \
+        --max-epochs=$max_epochs \
+        --lr=$lr \
+        --dropout=$dropout \
+        --embed_size=$embed_size \
+        --factor_embed_size=$factor_embed_size $FACT_VALUE \
+        --nhead=$nhead \
+        --log_interval=$log_interval \
+        --validation_interval=$validation_interval \
+        --eos_weight=$eos_weight \
+        --early_stopping=$early_stopping \
+        --tb_dir=$LOGDIR \
+        $train_path \
+        $valid_path
 }
 

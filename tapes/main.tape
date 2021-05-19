@@ -3,7 +3,7 @@ import "versioners.tape"
 
 global {
 	pyenv="conda:ersatz"
-	ducttape_output="/exp/rwicks/ersatz/exp/monolinguals"
+	ducttape_output="/exp/rwicks/ersatz/exp/camera_ready"
 	ducttape_experimental_packages=true
 	ducttape_experimental_submitters=true
 	ducttape_experimental_imports=true
@@ -178,15 +178,17 @@ plan do_english_scoring {
 }
 
 plan do_ml {
-    reach score via (Scenario: multilingual) *
-                (Vocabulary: ml_12000_vocab) *
+    reach score_dev via (Scenario: multilingual) *
+                (Vocabulary: 12000) *
                 (LeftSize: 6) *
                 (RightSize: 4) *
                 (EmbedSize: 128) *
+                (FactSize: 0 16 32) *
                 (TransformerLayers: 2) *
                 (LinearLayers: 1) *
                 (ActivationType: tanh) *
-                (EOSWeight: 1.0 5.0 0.2 10.0 0.1)
+                (EOSWeight: 1.0 5.0 0.2 10.0 0.1) *
+                (LearningRate: 0.0001 0.00001)
 #    reach score via (Scenario: multilingual_large) *
 #                (Vocabulary: ml_12000_vocab) *
 #                (LeftSize: 8) *

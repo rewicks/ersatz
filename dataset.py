@@ -2,7 +2,7 @@ import argparse
 import os
 from collections import namedtuple
 import torch
-import random
+import random, string
 import json
 from subword import Vocabulary, SentencePiece
 from determiner import MultilingualPunctuation
@@ -135,6 +135,51 @@ if __name__ == '__main__':
                      eos_percent=args.word_frequency,
                      sub_sample_percent=args.subsample_frequency)
 
+class SourceFactors():
+    def __init__(self):
+        self.codes = {
+            'UNMARK': 0,
+            'CAP': 1,
+            'LOWER': 2,
+            'PUNC': 3,
+            'TITLE': 4,
+            'NUMBER': 5
+        }
+        pass
+
+    # specific to sentencepiece
+    def compute(self, token_stream):
+        word = []
+        output_stream = []
+        token_stream = token_stream.split()
+        for t in token_stream + ['\u2581']:
+            if '\u2581' in t:
+                out = None
+                # potentially add a marker for truncated words in left context
+                if len(word) > 0:
+                    untok = ''.join(word).replace('\u2581', '')
+                    if untok.istitle():
+                        out = [self.codes['TITLE'] for w in word]
+                    elif untok.isupper():
+                        out = [self.codes['CAP'] for w in word]
+                    elif untok.islower():
+                        out = [self.codes['LOWER'] for w in word]
+                    elif untok in string.punctuation:
+                        out = [self.codes['PUNC'] for w in word]
+                    else:
+                        for w in untok:
+                            if w in string.digits:
+                                out = [self.codes['NUMBER'] for w in word]
+                                break
+                        if not out:
+                            out = [self.codes['UNMARK'] for w in word]
+                    output_stream += out
+                word = []
+            word.append(t)
+        assert(len(output_stream)==len(token_stream))
+        return output_stream
+
+
 class ErsatzDataset():
     def __init__(self, data_path, device,
                  left_context_size=15, right_context_size=5,
@@ -158,6 +203,7 @@ class ErsatzDataset():
         self.right_context_size = right_context_size
 
         self.data_path = data_path
+        self.source_factors = SourceFactors()
 
     def __len__(self):
         return self.size
@@ -166,26 +212,32 @@ class ErsatzDataset():
         data = []
         context_strings = []
         batch_idx = 0
+        #factors = []
         with open(self.data_path) as f:
             for line in f:
                 self.size += 1
                 if len(line.strip().split('|||')) == 3:
                     left, right, label = line.strip().split('|||')
+                    # little check because some datasets have '|||' ... maybe change eventually to special character code ?
                     if (len(left.split()) == self.left_context_size) and (len(right.split()) == self.right_context_size):
-                        data.append((left.strip(), right.strip(), label.strip()))
+                        data.append((left.strip(), self.source_factors.compute(left.strip()),
+                                     right.strip(), self.source_factors.compute(right.strip()),
+                                     label.strip()))
                         context_strings.append((left.strip(), right.strip()))
                 if len(data) >= batch_size:
-                    context, label = self.tokenizer.context_to_tensor(data)
+                    context, factors, label = self.tokenizer.context_to_tensor(data)
                     context = context.view(len(data), -1)
+                    factors = factors.view(len(data), -1)
                     label = label.view(len(data))
-                    yield context, label, context_strings
+                    yield context, factors, label, context_strings
                     batch_idx += 1
                     data = []
                     context_strings = []
-            context, label = self.tokenizer.context_to_tensor(data)
+            context, factors, label = self.tokenizer.context_to_tensor(data)
             context = context.view(len(data), -1)
+            factors = factors.view(len(data), -1)
             label = label.view(len(data))
             if len(data) > 0:
-                yield context, label, context_strings
+                yield context, factors, label, context_strings
                 batch_idx += 1
 

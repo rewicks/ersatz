@@ -155,7 +155,7 @@ class ErsatzTrainer():
             self.model = nn.DataParallel(self.model) 
             self.model = self.model.cuda()
 
-    def validate(self, batch_size, determiner):
+    def validate(self, batch_size, determiner, use_factors=False):
         retVal = {}
         retVal['num_obs_eos'] = 0
         retVal['num_pred_eos'] = 0
@@ -172,10 +172,16 @@ class ErsatzTrainer():
         eos_ind = 0
         mos_ind = 1
         with torch.no_grad():
-            for i, (contexts, labels, context_strings) in enumerate(self.validation_set.batchify(batch_size)):
+            for i, (contexts, factors, labels, context_strings) in enumerate(self.validation_set.batchify(batch_size)):
                 data = contexts.to(self.device)
+
+                if use_factors:
+                    factors = factors.to(self.device)
+                else:
+                    factors = None
+
                 labels = labels.to(self.device)
-                output = self.model.forward(data)
+                output = self.model.forward(data, factors=factors)
                 loss = self.criterion(output, labels)
                 perplexity = torch.exp(F.cross_entropy(output, labels)).item()
                 pred = output.argmax(1)
@@ -230,14 +236,21 @@ class ErsatzTrainer():
 
     def run_epoch(self, epoch, batch_size, log_interval, validation_interval, results, best_model,
                   min_epochs = 10,
-                  validation_threshold=10):
+                  validation_threshold=10,
+                  use_factors=False):
 
         eos_ind = 0
         mos_ind = 1
-        for i, (contexts, labels, context_strings) in enumerate(self.training_set.batchify(batch_size)):
+        for i, (contexts, factors, labels, context_strings) in enumerate(self.training_set.batchify(batch_size)):
             data = contexts.to(self.device)
+
+            if use_factors:
+                factors = factors.to(self.device)
+            else:
+                factors = None
+
             labels = labels.to(self.device)
-            output = self.model.forward(data)
+            output = self.model.forward(data, factors=factors)
             loss = self.criterion(output, labels)
             ppl = torch.exp(F.cross_entropy(output, labels)).item()
             pred = output.argmax(1)
@@ -259,7 +272,7 @@ class ErsatzTrainer():
                 results.reset(time.time())
 
             if i % validation_interval == 1:
-                stats = self.validate(batch_size, global_determiner)
+                stats = self.validate(batch_size, global_determiner, use_factors=use_factors)
                 stats['type'] = 'VALIDATION'
                 results.validated()
                 stats['average_loss'] = stats['total_loss']/stats['num_pred']
@@ -321,6 +334,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=0.0001)
     parser.add_argument('--dropout', type=float, default=0.1)
     parser.add_argument('--embed_size', type=int, default=256)
+    parser.add_argument('--source_factors', action='store_true')
+    parser.add_argument('--factor_embed_size', type=int, default=8)
     parser.add_argument('--transformer_nlayers', type=int, default=2)
     parser.add_argument('--linear_nlayers', type=int, default=0)
     parser.add_argument('--activation_type', type=str, default="tanh", choices=["tanh"])
@@ -359,7 +374,8 @@ if __name__ == '__main__':
         trainer.model.train()
         res, status, best_model = trainer.run_epoch(epoch, args.batch_size, args.log_interval, args.validation_interval, results, best_model,
                                                     min_epochs=args.min_epochs,
-                                                    validation_threshold=args.early_stopping)
+                                                    validation_threshold=args.early_stopping,
+                                                    use_factors=args.source_factors)
         if res == 0 and epoch > args.min_epochs:
             break
         trainer.scheduler.step()

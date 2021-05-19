@@ -58,6 +58,7 @@ class EvalModel():
         self.context_size = self.right_context_size + self.left_context_size
 
     def batchify(self, content, batch_size, det):
+        source_factors = dataset.SourceFactors()
         left_contexts, right_contexts = dataset.split_test_file(content, self.tokenizer, self.left_context_size, self.right_context_size)
         if len(left_contexts) > 0:
             lines = []
@@ -65,41 +66,49 @@ class EvalModel():
             index = 0
             for left, right in zip(left_contexts, right_contexts):
                 if det(detokenize(' '.join(left)), detokenize(' '.join(right))):
-                    lines.append((left, right, '<eos>'))
+                    lines.append((left, source_factors.compute(left),
+                                  right, source_factors.compute(right),
+                                  '<eos>'))
                     indices.append(index)
                 index += 1
             indices = torch.tensor(indices)
-            data, _ = self.tokenizer.context_to_tensor(lines)
+            data, factors, _ = self.tokenizer.context_to_tensor(lines)
 
             nbatch = data.size(0) // batch_size
             remainder = data.size(0) % batch_size
 
             if remainder > 0:
-                remaining_data = data.narrow(0,nbatch*batch_size, remainder)
+                remaining_data = data.narrow(0, nbatch*batch_size, remainder)
+                remaining_factors = factors.narrow(0, nbatch*batch_size, remainder)
                 remaining_indices = indices.narrow(0, nbatch*batch_size, remainder)
 
             data = data.narrow(0, 0, nbatch*batch_size)
+            factors = factors.narrow(0, 0, nbatch*batch_size)
             indices = indices.narrow(0, 0, nbatch * batch_size)
 
             data = data.view(batch_size, -1).t().contiguous()
+            factors = factors.view(batch_size, -1).t().contiguous()
             indices = indices.view(batch_size, -1).t().contiguous()
 
             if remainder > 0:
                 remaining_data = remaining_data.view(remainder, -1).t().contiguous()
+                remaining_factors = remaining_factors.view(remainder, -1).t().contiguous()
                 remaining_indices = remaining_indices.view(remainder, -1).t().contiguous()
 
 
             batches = []
             data = data.view(-1, self.context_size, batch_size)
+            factors = factors.view(-1, self.context_size, batch_size)
             indices = indices.view(-1, 1, batch_size)
 
             if remainder > 0:
                 remaining_data = remaining_data.view(-1, self.context_size, remainder)
+                remaining_factors = remaining_factors.view(-1, self.context_size, remainder)
                 remaining_indices = remaining_indices.view(-1, 1, remainder)
-            for context_batch, index_batch in zip(data, indices):
-                batches.append((context_batch.t(), index_batch[0]))
+            for context_batch, factors_batch, index_batch in zip(data, factors, indices):
+                batches.append((context_batch.t(), factors_batch.t(), index_batch[0]))
             if remainder > 0:
-                batches.append((remaining_data[0].t(), remaining_indices[0][0]))
+                batches.append((remaining_data[0].t(), remaining_factors[0].t(), remaining_indices[0][0]))
             return batches
         else:
             return []
@@ -107,10 +116,14 @@ class EvalModel():
     def parallel_evaluation(self, content, batch_size, det=None, min_sent_length=3):
         batches = self.batchify(content, batch_size, det)
         eos = []
-        for contexts, indices, in batches:
+        for contexts, factors, indices, in batches:
             data = contexts.to(self.device)
+            if not self.model.source_factors:
+                factors = None
+            else:
+                factors = factors.to(self.device)
 
-            output = self.model.forward(data)
+            output = self.model.forward(data, factors=factors)
 
             pred = output.argmax(1)
             pred_ind = torch.where(pred == 0)[0]

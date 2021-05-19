@@ -36,3 +36,75 @@ python score.py [gold_standard_file_path] [file_to_score]
 
 (There are legacy arguments, but they're not used)
 
+# Training a Model
+
+## Data Preprocessing
+
+### Vocabulary
+Requires uses a pretrained `sentencepiece` model that has had `--eos_piece` replaced with `<eos>` and `--bos_piece` replaced with `<mos>`.
+
+```angular2html
+spm_train_py --input $TRAIN_DATA_PATH \
+   --input_sentence_size 10000000 \
+   --model_prefix ersatz \
+   --vocab_size $VOCAB_SIZE \
+   --bos_piece "<mos>" \
+   --eos_piece "<eos>"
+```
+
+### Create training data
+
+This pipeline takes a raw text file with one sentence per line (to use as labels) and creates a new raw text file
+with the appropriate left/right context and labels. One line is one training example. User is expected to shuffle this
+file manually (ie via `shuf`) after creation.
+
+1. To create:
+```angular2html
+python dataset.py \
+    --sentencepiece_path $SPM_PATH \
+    --left-size $LEFT_SIZE \
+    --right-size $RIGHT_SIZE \
+    --output_path $OUTPUT_PATH \
+    $INPUT_TRAIN_FILE_PATHS
+
+
+shuf $OUTPUT_PATH > $SHUFFLED_TRAIN_OUTPUT_PATH
+```
+2. Repeat for validation data 
+```angular2html
+python dataset.py \
+    --sentencepiece_path $SPM_PATH \
+    --left-size $LEFT_SIZE \
+    --right-size $RIGHT_SIZE \
+    --output_path $VALIDATION_OUTPUT_PATH \
+    $INPUT_DEV_FILE_PATHS
+```
+
+## Training
+Something like: 
+
+```angular2html
+        python trainer.py \
+        --sentencepiece_path=$vocab_path \
+        --left_size=$left_size \
+        --right_size=$right_size \
+        --output_path=$out \
+        --transformer_nlayers=$transformer_nlayers \
+        --activation_type=$activation_type \
+        --linear_nlayers=$linear_nlayers \
+        --min-epochs=$min_epochs \
+        --max-epochs=$max_epochs \
+        --lr=$lr \
+        --dropout=$dropout \
+        --embed_size=$embed_size \
+        --factor_embed_size=$factor_embed_size \
+        --source_factors \
+        --nhead=$nhead \
+        --log_interval=$log_interval \
+        --validation_interval=$validation_interval \
+        --eos_weight=$eos_weight \
+        --early_stopping=$early_stopping \
+        --tb_dir=$LOGDIR \
+        $train_path \
+        $valid_path
+```

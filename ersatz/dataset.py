@@ -1,15 +1,77 @@
-import argparse
 import os
-from collections import namedtuple
-import torch
-import random, string
-import json
-from subword import Vocabulary, SentencePiece
-from determiner import MultilingualPunctuation
+import random
+import string
+import pathlib
+import sys
+import logging
+import argparse
+
+if __package__ is None and __name__ == '__main__':
+    parent = pathlib.Path(__file__).absolute().parents[1]
+    sys.path.insert(0, str(parent))
+    __package__ = 'ersatz'
+
+from .subword import Vocabulary, SentencePiece
+from .determiner import MultilingualPunctuation, PunctuationSpace, Split
+
+logger = logging.getLogger('ersatz')
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="ERSATZ PREPROCESSOR: converts raw text (~one sentence per line) to expected input for ersatz training.\n"
+        "      Example: ersatz_preprocess --sp en.8000.model --output_path en.train file1.txt file2.txt file3.txt",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+
+    parser.add_argument('--sentencepiece_path', '--sp', type=str, default=None,
+                        help="Path to sentencepiece .model file to be used as tokenizer")
+    parser.add_argument('--output_path', type=str, default="train.data",
+                        help="File path where output will be written")
+    parser.add_argument('--left-size', type=int, default=5,
+                        help="Number of tokens of left context to use for predictions")
+    parser.add_argument('--right-size', type=int, default=5,
+                        help="Number of tokens of right context to use for predictions")
+    parser.add_argument('--determiner_type', default='multilingual', choices=["en", "multilingual", "all"],
+                        help="Type of contexts to include. Defaults to 'multilingual'\n"
+                            "   * en: [EOS punctuation][any_punctuation]*[space]\n"
+                            "   * multilingual: [EOS punctuation][!number]\n"
+                            "   * all: all possible contexts")
+    parser.add_argument('--input_paths', nargs='*', default=None,
+                        help="Paths to raw text input files")
+    args = parser.parse_args()
+    return args
+
+def main():
+    args = parse_args()
+
+    if args.sentencepiece_path is not None:
+        tokenizer = SentencePiece(model_path=args.sentencepiece_path)
+    else:
+        logger.error("ERROR: No --sentencepiece_path was given. Training one as part of preprocessing is not currently supported.")
+        sys.exit(-1)
+
+    if args.determiner_type == "en":
+        determiner = PunctuationSpace()
+    elif args.determiner_type == "multilingual":
+        determiner = MultilingualPunctuation()
+    else:
+        determiner = Split()
+
+    split_train_file(args.input_paths, tokenizer,
+                     output_path=args.output_path,
+                     left_context_size=args.left_size,
+                     right_context_size=args.right_size,
+                     determiner=determiner)
+
+if __name__ == '__main__':
+    main()
+
+#######################################################################################################
+
 # iterates over a file and yields one doc at a time with the appropriately
 # labelled splits; documents are separated by empty lines
-def page_generator(file_path, tokenizer=None):
-    page = []
+def document_generator(file_path, tokenizer=None):
+    document = []
     with open(file_path) as input_file:
         for line in input_file:
             if len(tokenizer.encode(line, out_type=str)) > 0:
@@ -20,70 +82,73 @@ def page_generator(file_path, tokenizer=None):
                     new_line.append(l)
                     new_line.append('<mos>')
                 new_line[-1] = '<eos>'
-                page += new_line
+                document += new_line
             else:
-                yield page
-                page = []
-    yield page
+                yield document
+                document = []
+    yield document
 
 # this builds all the training data from a plain text file
 # writes it out to a new file
-def split_train_file(file_paths, tokenizer, output_path=None, left_context_size=5, right_context_size=5, eos_percent=0.25, sub_sample_percent=0.1):
-    random.seed(14)
+def split_train_file(file_paths,
+                     tokenizer,
+                     output_path=None,
+                     left_context_size=5,
+                     right_context_size=5,
+                     determiner=None):
 
-    det = MultilingualPunctuation()
+    random.seed(14)
 
     with open(output_path, 'w') as f:
         for file_path in file_paths:
-            for content in page_generator(file_path, tokenizer=tokenizer):
-                for index, word in enumerate(content):
-                    random_number = random.random()
-                    if (word == '<mos>' and random_number <= (eos_percent*sub_sample_percent)) or (word == '<eos>' and random_number <= sub_sample_percent):
-                        if index < len(content)-1 and '\u2581' in content[index+1]:
-                            left_temp = []
-                            right_temp = []
-                            
-                            # Get the left context
-                            temp_index = index-1
-                            while (len(left_temp) < left_context_size):
-                                if temp_index >= 0:
-                                    if content[temp_index] not in ['<eos>', '<mos>']:
-                                        left_temp.append(content[temp_index])
-                                else:
-                                    left_temp.append('<pad>')
-                                temp_index -= 1
-                            left_temp.reverse()
-                    
-                            label = word
+            for doc in document_generator(file_path, tokenizer=tokenizer):
+                for index, word in enumerate(doc):
+                    if index < len(doc)-1 and '\u2581' in doc[index+1]:
+                        left_temp = []
+                        right_temp = []
 
-                            temp_index = index + 1
-                            while (len(right_temp) < right_context_size):
-                                if temp_index < len(content): 
-                                    if content[temp_index] not in ['<eos>', '<mos>']:
-                                        right_temp.append(content[temp_index])
-                                else:
-                                    right_temp.append('<pad>')
-                                temp_index += 1
-        
-                            if det(' '.join(left_temp), ' '.join(right_temp)):
-                                f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
+                        # Get the left context
+                        temp_index = index-1
+                        while (len(left_temp) < left_context_size):
+                            if temp_index >= 0:
+                                if doc[temp_index] not in ['<eos>', '<mos>']:
+                                    left_temp.append(doc[temp_index])
+                            else:
+                                left_temp.append('<pad>')
+                            temp_index -= 1
+                        left_temp.reverse()
+
+                        label = word
+
+                        temp_index = index + 1
+                        while (len(right_temp) < right_context_size):
+                            if temp_index < len(doc):
+                                if doc[temp_index] not in ['<eos>', '<mos>']:
+                                    right_temp.append(doc[temp_index])
+                            else:
+                                right_temp.append('<pad>')
+                            temp_index += 1
+
+                        if determiner(' '.join(left_temp), ' '.join(right_temp)):
+                            f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
 
 
 # split test files
 # the difference between this and the previous is there are no labels in data
-def split_test_file(content, tokenizer, left_context_size, right_context_size):
-    content = tokenizer.encode(content, out_type=str)
+def split_test_file(document, tokenizer, left_context_size, right_context_size):
+    document = tokenizer.encode(document, out_type=str)
     left_contexts = []
     right_contexts = []
-    for index, word in enumerate(content, 0):
+    for index, word in enumerate(document, 0):
         left_temp = []
         right_temp = []
         # Get the left context
         temp_index = index - 1
         while (len(left_temp) < left_context_size):
             if temp_index >= 0:
-                left_temp.append(content[temp_index])
+                left_temp.append(document[temp_index])
             else:
+                # padding for the beginning of the document
                 left_temp.append('<pad>')
             temp_index -= 1
 
@@ -93,9 +158,10 @@ def split_test_file(content, tokenizer, left_context_size, right_context_size):
         # Get the right context
         temp_index = index
         while (len(right_temp) < right_context_size):
-            if temp_index < len(content):
-                right_temp.append(content[temp_index])
+            if temp_index < len(document):
+                right_temp.append(document[temp_index])
             else:
+                # padding for the end of the document
                 right_temp.append('<pad>')
             temp_index += 1
 
@@ -112,28 +178,6 @@ def write_training_files(file_path, left_contexts, right_contexts, labels, left_
     with open(output_path, 'w') as f:
         for left, right, label in zip(left_contexts, right_contexts, labels):
             f.write(' '.join(left) + ' ||| ' + ' '.join(right) + ' ||| ' + label + '\n')
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('paths', nargs='*')
-    parser.add_argument('--sentencepiece_path', type=str)
-    parser.add_argument('--output_path', type=str)
-    parser.add_argument('--left-size', type=int)
-    parser.add_argument('--right-size', type=int)
-    parser.add_argument('--word-frequency', type=float, default=1.0)
-    parser.add_argument('--subsample-frequency', type=float, default=1.0)
-    args = parser.parse_args()
-
-    if args.sentencepiece_path is not None:
-        tokenizer = SentencePiece(args.sentencepiece_path)
-    else:
-        tokenizer = Vocabulary()
-    split_train_file(args.paths, tokenizer,
-                     output_path=args.output_path,
-                     left_context_size=args.left_size,
-                     right_context_size=args.right_size,
-                     eos_percent=args.word_frequency,
-                     sub_sample_percent=args.subsample_frequency)
 
 class SourceFactors():
     def __init__(self):
@@ -182,12 +226,13 @@ class SourceFactors():
 
 class ErsatzDataset():
     def __init__(self, data_path, device,
-                 left_context_size=15, right_context_size=5,
+                 left_context_size=15,
+                 right_context_size=5,
                  sentencepiece_path=None,
                  tokenizer=None):
         if tokenizer is None:
             if sentencepiece_path is not None:
-                self.tokenizer = SentencePiece(sentencepiece_path)
+                self.tokenizer = SentencePiece(model_path=sentencepiece_path)
             else:
                 self.tokenizer = Vocabulary()
                 self.tokenizer.build_vocab(data_path)
@@ -240,4 +285,3 @@ class ErsatzDataset():
             if len(data) > 0:
                 yield context, factors, label, context_strings
                 batch_idx += 1
-

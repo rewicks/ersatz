@@ -10,7 +10,7 @@ class ErsatzTransformer(nn.Module):
 
         self.factor_embed_size = 0
         self.source_factors = False
-        if args.source_factors:
+        if 'source_factors' in args and args.source_factors:
             self.fact_emb = nn.Embedding(6, args.factor_embed_size)
             self.factor_embed_size = args.factor_embed_size
             self.source_factors = True

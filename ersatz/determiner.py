@@ -1,7 +1,5 @@
 import re
 
-
-
 # sentence ending punctuation
 # U+0964  ।   Po  DEVANAGARI DANDA
 # U+061F  ؟   Po  ARABIC QUESTION MARK

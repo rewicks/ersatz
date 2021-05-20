@@ -1,18 +1,102 @@
-from model import ErsatzTransformer
-from dataset import ErsatzDataset
 import time
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
 import torch.nn.functional as F
 import argparse
-from determiner import PunctuationSpace, Split, MultilingualPunctuation
 import os
 import logging
 import math
 import json
+import sys
+import pathlib
 
-logging.basicConfig(format="%(levelname)s : %(message)s", level=logging.INFO)
+from .subword import SentencePiece
+
+if __package__ is None and __name__ == '__main__':
+    parent = pathlib.Path(__file__).absolute().parents[1]
+    sys.path.insert(0, str(parent))
+    __package__ = 'ersatz'
+
+from .determiner import PunctuationSpace, Split, MultilingualPunctuation
+from .model import ErsatzTransformer
+from .dataset import ErsatzDataset
+
+logging.basicConfig(format="%(message)s", level=logging.INFO)
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--train_path', type=str)
+    parser.add_argument('--valid_path', type=str)
+    parser.add_argument('--sentencepiece_path')
+    parser.add_argument('--determiner_type', default='en', choices=["en", "multilingual", "all"])
+    parser.add_argument('--left_size', type=int, default=15)
+    parser.add_argument('--right_size', type=int, default=5)
+    parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--min-epochs', type=int, default=25)
+    parser.add_argument('--max-epochs', type=int, default=1000)
+    parser.add_argument('--output_path', type=str, default='models')
+    parser.add_argument('--checkpoint_path', type=str)
+    parser.add_argument('--lr', type=float, default=0.0001)
+    parser.add_argument('--dropout', type=float, default=0.1)
+    parser.add_argument('--embed_size', type=int, default=256)
+    parser.add_argument('--source_factors', action='store_true')
+    parser.add_argument('--factor_embed_size', type=int, default=8)
+    parser.add_argument('--transformer_nlayers', type=int, default=2)
+    parser.add_argument('--linear_nlayers', type=int, default=0)
+    parser.add_argument('--activation_type', type=str, default="tanh", choices=["tanh"])
+    parser.add_argument('--nhead', type=int, default=8)
+    parser.add_argument('--log_interval', type=int, default=1000)
+    parser.add_argument('--validation_interval', type=int, default=25000)
+    parser.add_argument('--early_stopping', type=int, default=25)
+    parser.add_argument('--cpu', action='store_true')
+    parser.add_argument('--eos_weight', type=float, default=9.0)
+    parser.add_argument('--seed', type=int, default=14)
+    parser.add_argument('--tb_dir', type=str, default=None)
+    args = parser.parse_args()
+    return args
+
+def main():
+
+    args = parse_args()
+
+    if args.determiner_type == "en":
+        determiner = PunctuationSpace()
+    elif args.determiner_type == "multilingual":
+        determiner = MultilingualPunctuation()
+    else:
+        determiner = Split()
+
+    torch.manual_seed(args.seed)
+    logging.info('Starting trainer...')
+    trainer = ErsatzTrainer(args)
+
+    logging.info(trainer.model)
+    logging.info(args)
+    minloss = math.inf
+    status = {}
+    status['type'] = 'TRAINING'
+    best_model = None
+    results = Results(time.time())
+    for epoch in range(args.max_epochs):
+        status['epoch'] = epoch
+        trainer.model.train()
+        res, status, best_model = trainer.run_epoch(epoch, args.batch_size, args.log_interval, args.validation_interval,
+                                                    results, best_model,
+                                                    min_epochs=args.min_epochs,
+                                                    validation_threshold=args.early_stopping,
+                                                    use_factors=args.source_factors,
+                                                    determiner=determiner)
+        if res == 0 and epoch > args.min_epochs:
+            break
+        trainer.scheduler.step()
+
+
+if __name__ == '__main__':
+    main()
+
+
+################################################################################
 
 class Results():
     def __init__(self, time):
@@ -95,13 +179,14 @@ def load_model(checkpoint_path):
     model_dict = torch.load(checkpoint_path)
     model = ErsatzTransformer(model_dict['vocab'], model_dict['args'])
     model.load_state_dict(model_dict['weights'])
+
     return model
 
 def save_model(model, output_path):
     model = model.cpu()
     model_dict = {
         'weights': model.state_dict(),
-        'tokenizer': model.tokenizer,
+        'tokenizer': open(model.tokenizer.model_path, 'rb').read(),
         'args': model.args
     }
     torch.save(model_dict, output_path)
@@ -237,7 +322,8 @@ class ErsatzTrainer():
     def run_epoch(self, epoch, batch_size, log_interval, validation_interval, results, best_model,
                   min_epochs = 10,
                   validation_threshold=10,
-                  use_factors=False):
+                  use_factors=False,
+                  determiner=None):
 
         eos_ind = 0
         mos_ind = 1
@@ -263,7 +349,7 @@ class ErsatzTrainer():
             self.optimizer.step()
         
             if i % log_interval == 1:
-                status = results.get_results(self.scheduler.get_lr()[0]) 
+                status = results.get_results(self.scheduler.get_last_lr()[0])
                 logging.info(json.dumps(status))
                 for key in status:
                     if type(status[key]) is float:
@@ -272,7 +358,7 @@ class ErsatzTrainer():
                 results.reset(time.time())
 
             if i % validation_interval == 1:
-                stats = self.validate(batch_size, global_determiner, use_factors=use_factors)
+                stats = self.validate(batch_size, determiner, use_factors=use_factors)
                 stats['type'] = 'VALIDATION'
                 results.validated()
                 stats['average_loss'] = stats['total_loss']/stats['num_pred']
@@ -315,67 +401,3 @@ class ErsatzTrainer():
         save_model(self.model, os.path.join(self.output_path, f'checkpoint.e{epoch}')) 
         self.model = self.model.to(self.device)
         return 1, status, best_model
-
-
-if __name__ == '__main__':
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument('train_path', type=str)
-    parser.add_argument('valid_path', type=str)
-    parser.add_argument('--sentencepiece_path')
-    parser.add_argument('--determiner_type', default='en', choices=["en", "multilingual", "all"])
-    parser.add_argument('--left_size', type=int, default=15)
-    parser.add_argument('--right_size', type=int, default=5)
-    parser.add_argument('--batch_size', type=int, default=256)
-    parser.add_argument('--min-epochs', type=int, default=25)
-    parser.add_argument('--max-epochs', type=int, default=1000)
-    parser.add_argument('--output_path', type=str, default='models')
-    parser.add_argument('--checkpoint_path', type=str)
-    parser.add_argument('--lr', type=float, default=0.0001)
-    parser.add_argument('--dropout', type=float, default=0.1)
-    parser.add_argument('--embed_size', type=int, default=256)
-    parser.add_argument('--source_factors', action='store_true')
-    parser.add_argument('--factor_embed_size', type=int, default=8)
-    parser.add_argument('--transformer_nlayers', type=int, default=2)
-    parser.add_argument('--linear_nlayers', type=int, default=0)
-    parser.add_argument('--activation_type', type=str, default="tanh", choices=["tanh"])
-    parser.add_argument('--nhead', type=int, default=8)
-    parser.add_argument('--log_interval', type=int, default=1000)
-    parser.add_argument('--validation_interval', type=int, default=25000)
-    parser.add_argument('--early_stopping', type=int, default=25)
-    parser.add_argument('--cpu', action='store_true')
-    parser.add_argument('--eos_weight', type=float, default=9.0)
-    parser.add_argument('--seed', type=int, default=14)
-    parser.add_argument('--tb_dir', type=str, default=None)
-    args = parser.parse_args()
-
-
-    if args.determiner_type == "en":
-        global_determiner = PunctuationSpace()
-    elif args.determiner_type == "multilingual":
-        global_determiner = MultilingualPunctuation()
-    else:
-        global_determiner = Split()
-
-
-    torch.manual_seed(args.seed)
-    logging.info('Starting trainer...')
-    trainer = ErsatzTrainer(args)
-
-    logging.info(trainer.model)
-    logging.info(args)
-    minloss = math.inf
-    status = {}
-    status['type'] = 'TRAINING'
-    best_model = None
-    results = Results(time.time())
-    for epoch in range(args.max_epochs):
-        status['epoch'] = epoch
-        trainer.model.train()
-        res, status, best_model = trainer.run_epoch(epoch, args.batch_size, args.log_interval, args.validation_interval, results, best_model,
-                                                    min_epochs=args.min_epochs,
-                                                    validation_threshold=args.early_stopping,
-                                                    use_factors=args.source_factors)
-        if res == 0 and epoch > args.min_epochs:
-            break
-        trainer.scheduler.step()

@@ -1,6 +1,14 @@
 import argparse
 import numpy as np
-from determiner import *
+import pathlib
+import sys
+
+if __package__ is None and __name__ == '__main__':
+    parent = pathlib.Path(__file__).absolute().parents[1]
+    sys.path.insert(0, str(parent))
+    __package__ = 'ersatz'
+
+from .determiner import MultilingualPunctuation, PunctuationSpace, Split
 
 def levenshtein(gold_sequence, pred_sequence):
     size_x = len(gold_sequence) + 1
@@ -379,7 +387,7 @@ def score(target_file, pred_file, det, rtl=False, range=10):
     print(total_edits)
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('rubric_file_path', type=str)
     parser.add_argument('pred_file_path', type=str)
@@ -396,3 +404,6 @@ if __name__ == '__main__':
         determiner = Split()
 
     score(args.rubric_file_path, args.pred_file_path, determiner, rtl=args.rtl)
+
+if __name__ == '__main__':
+    main()

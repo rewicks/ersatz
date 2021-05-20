@@ -82,15 +82,18 @@ class SentencePiece(Vocabulary):
     Implements SentencePiece.
     https://github.com/google/sentencepiece/blob/master/python/README.md
     """
-    def __init__(self, model_path, vocab_path = None, sample: bool = True, alpha: float = 0.5):
+    def __init__(self, serialization=None, model_path=None, vocab_path = None, sample: bool = True, alpha: float = 0.5):
         import sentencepiece as spm
-        self.model = spm.SentencePieceProcessor()
-        self.model_path = model_path
-        if model_path is not None:
-            self.model.Load(model_path)
-        if vocab_path:
-            self.vocab_path = vocab_path
-            self.model.LoadVocabulary(vocab_path)
+        if serialization is None:
+            self.model = spm.SentencePieceProcessor()
+            self.model_path = model_path
+            if model_path is not None:
+                self.model.Load(model_path)
+            if vocab_path:
+                self.vocab_path = vocab_path
+                self.model.LoadVocabulary(vocab_path)
+        else:
+            self.model = spm.SentencePieceProcessor(model_proto=serialization)
         self.alpha = alpha
         self.sample = sample
 
@@ -118,4 +121,4 @@ class SentencePiece(Vocabulary):
             return self.model.decode(sentence)
 
 def get_tokenizer(model_path, sample = False):
-    return SentencePiece(model_path, sample=sample)
+    return SentencePiece(model_path=model_path, sample=sample)

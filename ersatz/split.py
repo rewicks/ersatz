@@ -1,11 +1,21 @@
 #!/usr/bin/env python
 
-from model import ErsatzTransformer
+import pathlib
+import sys
 import torch
 import argparse
-import dataset
 import sys
-from determiner import *
+
+if __package__ is None and __name__ == '__main__':
+    parent = pathlib.Path(__file__).absolute().parents[1]
+    sys.path.insert(0, str(parent))
+    __package__ = 'ersatz'
+
+from .utils import get_model_path
+from .model import ErsatzTransformer
+from .dataset import SourceFactors, split_test_file
+from .determiner import PunctuationSpace, MultilingualPunctuation, Split
+from .subword import SentencePiece
 
 # default args for loading models
 # should write something to merge default args with loaded args (overwrite when applicable)
@@ -23,7 +33,8 @@ class DefaultArgs():
 
 def load_model(checkpoint_path):
     model_dict = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-    model = ErsatzTransformer(model_dict['tokenizer'], model_dict['args'])
+    tokenizer = SentencePiece(serialization=model_dict['tokenizer'])
+    model = ErsatzTransformer(tokenizer, model_dict['args'])
     model.load_state_dict(model_dict['weights'])
     model.eval()
     return model
@@ -58,8 +69,8 @@ class EvalModel():
         self.context_size = self.right_context_size + self.left_context_size
 
     def batchify(self, content, batch_size, det):
-        source_factors = dataset.SourceFactors()
-        left_contexts, right_contexts = dataset.split_test_file(content, self.tokenizer, self.left_context_size, self.right_context_size)
+        source_factors = SourceFactors()
+        left_contexts, right_contexts = split_test_file(content, self.tokenizer, self.left_context_size, self.right_context_size)
         if len(left_contexts) > 0:
             lines = []
             indices = []
@@ -185,10 +196,11 @@ class EvalModel():
                         out_line.append(col[x])
                 print(delimiter.join(out_line).strip(), file=output_file)
 
-if __name__ == '__main__':
+def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('model_path')
+    parser.add_argument('--model_path', default=None, help="Path to a trained ersatz model")
+    parser.add_argument('--model_name', type=str, default='default', help="Name of pre-trained ersatz model to download and use")
     parser.add_argument('--input', default=None, help="Input file. None means stdin")
     parser.add_argument('--output', default=None, help="Output file. None means stdout")
     parser.add_argument('--delim', type=str, default='\t', help="Delimiter character. Default is tab")
@@ -216,7 +228,11 @@ if __name__ == '__main__':
     else:
         output_file = sys.stdout
 
-    model = EvalModel(args.model_path, args)
+    if args.model_path is not None:
+        model = EvalModel(args.model_path, args)
+    else:
+        model_path = get_model_path(args.model_name)
+        model = EvalModel(model_path, args)
 
     with torch.no_grad():
         if args.text_ids is None:
@@ -224,4 +240,6 @@ if __name__ == '__main__':
         else:
             text_ids = [int(t) for t in args.text_ids.split(',')]
             model.split_delimiter(input_file, output_file, args.batch_size, args.delim, text_ids, det=determiner)
-    print('complete', file=sys.stderr)
+
+if __name__ == '__main__':
+    main()

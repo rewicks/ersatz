@@ -11,6 +11,7 @@ if __package__ is None and __name__ == '__main__':
     sys.path.insert(0, str(parent))
     __package__ = 'ersatz'
 
+from . import __version__
 from .utils import get_model_path
 from .model import ErsatzTransformer
 from .dataset import SourceFactors, split_test_file
@@ -208,8 +209,13 @@ def main():
     parser.add_argument('--batch_size', type=int, default=16, help="Batch size--predictions to make at once")
     parser.add_argument('--determiner_type', default='multilingual', choices=['en', 'multilingual', 'all'])
     parser.add_argument('--cpu', action='store_true')
+    parser.add_argument('--version', '-V', action='store_true')
 
     args = parser.parse_args()
+
+    if args.version:
+        print("ersatz", __version__)
+        sys.exit(0)
 
     if args.determiner_type == "en":
         determiner = PunctuationSpace()

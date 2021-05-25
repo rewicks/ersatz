@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import pathlib
-import sys
+import os
 import torch
 import argparse
 import sys
@@ -18,6 +18,15 @@ from .dataset import SourceFactors, split_test_file
 from .determiner import PunctuationSpace, MultilingualPunctuation, Split
 from .subword import SentencePiece
 
+import logging
+# TODO: change the loglevel here if -q is passed
+logging.basicConfig(
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=os.environ.get("LOGLEVEL", "INFO").upper(),
+    stream=sys.stdout,
+)
+logger = logging.getLogger("ersatz")
 # default args for loading models
 # should write something to merge default args with loaded args (overwrite when applicable)
 class DefaultArgs():
@@ -48,7 +57,7 @@ def detokenize(input_string):
 class EvalModel():
     def __init__(self, model_path, args):
         if torch.cuda.is_available() and not args.cpu:
-            print('Using gpu', file=sys.stderr)
+            logger.info('Using GPU for segmentation (disable with --cpu)')
             self.model = load_model(model_path)
             if type(self.model) is torch.nn.DataParallel:
                 self.model = self.model.module
@@ -57,7 +66,7 @@ class EvalModel():
             if torch.cuda.device_count() > 1:
                 self.model = torch.nn.DataParallel(self.model)
         else:
-            print('Using cpu', file=sys.stderr)
+            logger.info('Using CPU for segmentation')
             self.model = load_model(model_path)
             if type(self.model) is torch.nn.DataParallel:
                 self.model = self.model.module

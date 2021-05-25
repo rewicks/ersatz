@@ -18,7 +18,7 @@ if __package__ is None and __name__ == '__main__':
     __package__ = 'ersatz'
 
 from .subword import SentencePiece
-from .determiner import PunctuationSpace, Split, MultilingualPunctuation
+from .candidates import PunctuationSpace, Split, MultilingualPunctuation
 from .model import ErsatzTransformer
 from .dataset import ErsatzDataset
 

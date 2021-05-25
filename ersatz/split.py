@@ -5,6 +5,7 @@ import os
 import torch
 import argparse
 import sys
+import csv
 
 if __package__ is None and __name__ == '__main__':
     parent = pathlib.Path(__file__).absolute().parents[1]
@@ -12,10 +13,10 @@ if __package__ is None and __name__ == '__main__':
     __package__ = 'ersatz'
 
 from . import __version__
-from .utils import get_model_path
+from .utils import get_model_path, list_models, MODELS
 from .model import ErsatzTransformer
 from .dataset import SourceFactors, split_test_file
-from .determiner import PunctuationSpace, MultilingualPunctuation, Split
+from .candidates import PunctuationSpace, MultilingualPunctuation, Split
 from .subword import SentencePiece
 
 import logging
@@ -55,30 +56,34 @@ def detokenize(input_string):
     return input_string
 
 class EvalModel():
-    def __init__(self, model_path, args):
-        if torch.cuda.is_available() and not args.cpu:
-            logger.info('Using GPU for segmentation (disable with --cpu)')
-            self.model = load_model(model_path)
-            if type(self.model) is torch.nn.DataParallel:
-                self.model = self.model.module
-            self.device = torch.device("cuda") 
-            self.model = self.model.to(self.device)  
-            if torch.cuda.device_count() > 1:
-                self.model = torch.nn.DataParallel(self.model)
-        else:
-            logger.info('Using CPU for segmentation')
-            self.model = load_model(model_path)
-            if type(self.model) is torch.nn.DataParallel:
-                self.model = self.model.module
-            self.device = torch.device('cpu')
-            self.model.to(self.device)
+    def __init__(self, model_path):
+        self.model = load_model(model_path)
+        if type(self.model) is torch.nn.DataParallel:
+            self.model = self.model.module
+
+        # if torch.cuda.is_available() and not cpu:
+        #     logger.info('Using GPU for segmentation (disable with --cpu)')
+        #     self.model = load_model(model_path)
+        #     if type(self.model) is torch.nn.DataParallel:
+        #         self.model = self.model.module
+        #     self.device = torch.device("cuda")
+        #     self.model = self.model.to(self.device)
+        #     if torch.cuda.device_count() > 1:
+        #         self.model = torch.nn.DataParallel(self.model)
+        # else:
+        #     logger.info('Using CPU for segmentation')
+        #     self.model = load_model(model_path)
+        #     if type(self.model) is torch.nn.DataParallel:
+        #         self.model = self.model.module
+        #     self.device = torch.device('cpu')
+        #     self.model.to(self.device)
 
         self.tokenizer = self.model.tokenizer
         self.left_context_size = self.model.left_context_size
         self.right_context_size = self.model.right_context_size
         self.context_size = self.right_context_size + self.left_context_size
 
-    def batchify(self, content, batch_size, det):
+    def batchify(self, content, batch_size, candidates):
         source_factors = SourceFactors()
         left_contexts, right_contexts = split_test_file(content, self.tokenizer, self.left_context_size, self.right_context_size)
         if len(left_contexts) > 0:
@@ -86,7 +91,7 @@ class EvalModel():
             indices = []
             index = 0
             for left, right in zip(left_contexts, right_contexts):
-                if det(detokenize(' '.join(left)), detokenize(' '.join(right))):
+                if candidates(detokenize(' '.join(left)), detokenize(' '.join(right))):
                     lines.append((left, source_factors.compute(left),
                                   right, source_factors.compute(right),
                                   '<eos>'))
@@ -134,8 +139,8 @@ class EvalModel():
         else:
             return []
 
-    def parallel_evaluation(self, content, batch_size, det=None, min_sent_length=3):
-        batches = self.batchify(content, batch_size, det)
+    def parallel_evaluation(self, content, batch_size, candidates=None, min_sent_length=3):
+        batches = self.batchify(content, batch_size, candidates)
         eos = []
         for contexts, factors, indices, in batches:
             data = contexts.to(self.device)
@@ -175,31 +180,34 @@ class EvalModel():
             yield '\n'.join([o.strip() for o in output])
         yield None
 
-    def split(self, input_file, output_file, batch_size, det=None):
+    def split(self, input_file, output_file, batch_size, candidates=None):
         for line in input_file:
-            for batch_output in self.parallel_evaluation(line, batch_size, det=det):
+            for batch_output in self.parallel_evaluation(line, batch_size, candidates=candidates):
                 if batch_output is not None:
                     print(batch_output.strip(), file=output_file)
+        return output_file
 
-    def split_delimiter(self, input_file, output_file, batch_size, delimiter, text_ids, det=None):
+
+    def split_delimiter(self, input_file, output_file, batch_size, delimiter, columns, candidates=None):
+        input_file = csv.reader(input_file, delimiter=delimiter)
         for line in input_file:
-            line = line.split(delimiter)
             new_lines = []
             max_len = 1
             for i, l in enumerate(line):
-                if i in text_ids:
-                    for batch_output in self.parallel_evaluation(l, batch_size, det=det):
-                        batch_output = batch_output.split('\n')
-                        new_lines.append(batch_output)
-                        if len(batch_output) > max_len:
-                            max_len = len(batch_output)
+                if i in columns:
+                    for batch_output in self.parallel_evaluation(l, batch_size, candidates=candidates):
+                        if batch_output is not None:
+                            batch_output = batch_output.split('\n')
+                            new_lines.append(batch_output)
+                            if len(batch_output) > max_len:
+                                max_len = len(batch_output)
                 else:
                     new_lines.append([line[i]])
             for x in range(max_len):
                 out_line = []
                 for i, col in enumerate(new_lines):
                     if x >= len(col):
-                        if i not in text_ids:
+                        if i not in columns:
                             out_line.append(col[-1])
                         else:
                             out_line.append('')
@@ -207,55 +215,116 @@ class EvalModel():
                         out_line.append(col[x])
                 print(delimiter.join(out_line).strip(), file=output_file)
 
-def main():
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="ERSATZ SEGMENTER: Segments input text into sentences.\n"
+        "      Example: ersatz --model fr --input wikipedia.fr --output output.fr",
+        usage='%(prog)s [-h] [--model MODEL] [--input INPUT] [--output OUTPUT] [OPTIONS]',
+        formatter_class=argparse.RawTextHelpFormatter
+    )
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', default=None, help="Path to a trained ersatz model")
-    parser.add_argument('--model_name', type=str, default='default', help="Name of pre-trained ersatz model to download and use")
-    parser.add_argument('--input', default=None, help="Input file. None means stdin")
-    parser.add_argument('--output', default=None, help="Output file. None means stdout")
-    parser.add_argument('--delim', type=str, default='\t', help="Delimiter character. Default is tab")
-    parser.add_argument('--text_ids', type=str, default=None, help="Columns to split (comma-separated; 0-indexed). If empty, plain-text")
-    parser.add_argument('--batch_size', type=int, default=16, help="Batch size--predictions to make at once")
-    parser.add_argument('--determiner_type', default='multilingual', choices=['en', 'multilingual', 'all'])
-    parser.add_argument('--cpu', action='store_true')
-    parser.add_argument('--version', '-V', action='store_true')
+    main_group = parser.add_argument_group('arguments')
+    main_group.add_argument('--model', '-m', default='default-multilingual',
+                        help="Either name of or path to a pre-trained ersatz model")
+    main_group.add_argument('--input', '-i', default=None,
+                        help="Input file. None means stdin")
+    main_group.add_argument('--output', '-o', default=None,
+                        help="Output file. None means stdout")
+    main_group.add_argument('--batch-size', '-b', type=int, default=16,
+                        help="Batch size--predictions to make at once")
+    main_group.add_argument('--candidates', '-c', default='multilingual', choices=['multilingual', 'en', 'all'],
+                        help = "Criteria for selecting candidate sites. Defaults to 'multilingual'\n"
+                               "   * multilingual: [EOS punctuation][!number] (sentence-ending punctuation followed by a non-digit)\n"
+                               "   * en: [EOS punctuation][any_punctuation]*[space] (sentence-ending punctuation followed by a space)\n"
+                               "   * all: all possible contexts")
+    main_group.add_argument('--cpu', action='store_true', help="Uses CPU (GPU is default if available)")
+
+    tsv_group = parser.add_argument_group('tsv options', description="Used for splitting .csv/.tsv/etc files. This mode triggered by '--columns'")
+    tsv_group.add_argument('--delimiter', '-d', type=str, default='\t',
+                        help="Delimiter character (default is \\t)\n"
+                             "  * '--columns' must be set"
+                        )
+    tsv_group.add_argument('--columns', '-C', type=int, default=None, nargs="*",
+                        help="Columns to split (0-indexed). If empty, plain-text\n"
+                        )
+
+    options = parser.add_argument_group('additional options')
+    options.add_argument('--version', '-V', action='store_true', help="Prints ersatz version")
+    options.add_argument('--download', '-D', action='store_true',
+                        help="Downloads model selected via '--model'")
+    options.add_argument('--list', '-l', action='store_true',
+                        help="Lists available models.")
 
     args = parser.parse_args()
 
-    if args.version:
-        print("ersatz", __version__)
-        sys.exit(0)
+    args.text = None
 
-    if args.determiner_type == "en":
-        determiner = PunctuationSpace()
-    elif args.determiner_type == 'multilingual':
-        determiner = MultilingualPunctuation()
+    return args
+
+def split(args):
+    if args.candidates == "en":
+        candidates = PunctuationSpace()
+    elif args.candidates == 'multilingual':
+        candidates = MultilingualPunctuation()
     else:
-        determiner = Split()
+        candidates = Split()
 
     if args.input is not None:
         input_file = open(args.input, 'r')
+    elif args.text is not None:
+        input_file = args.text.split('\n')
     else:
         input_file = sys.stdin
 
     if args.output is not None:
         output_file = open(args.output, 'w')
+    elif args.text is not None:
+        from io import StringIO
+        output_file = StringIO()
     else:
         output_file = sys.stdout
 
-    if args.model_path is not None:
-        model = EvalModel(args.model_path, args)
+    if torch.cuda.is_available() and not args.cpu:
+        device = torch.device('cuda')
     else:
-        model_path = get_model_path(args.model_name)
-        model = EvalModel(model_path, args)
+        device = torch.device('cpu')
+
+    if args.model not in MODELS:
+        model = EvalModel(args.model)
+    else:
+        model_path = get_model_path(args.model)
+        model = EvalModel(model_path)
+
+    model.model = model.model.to(device)
+    model.device = device
 
     with torch.no_grad():
-        if args.text_ids is None:
-            model.split(input_file, output_file, args.batch_size, det=determiner)
+        if args.columns is None:
+            output_file = model.split(input_file, output_file, args.batch_size, candidates=candidates)
         else:
-            text_ids = [int(t) for t in args.text_ids.split(',')]
-            model.split_delimiter(input_file, output_file, args.batch_size, args.delim, text_ids, det=determiner)
+            output_file = model.split_delimiter(input_file, output_file, args.batch_size, args.delimiter, args.columns, candidates=candidates)
+
+    if args.text:
+        return output_file.getvalue().strip().split('\n')
+
+def main():
+
+    args = parse_args()
+
+    if args.version:
+        from . import __version__
+        print("ersatz", __version__)
+        sys.exit(0)
+
+    if args.download:
+        get_model_path(args.model)
+        sys.exit(0)
+
+    if args.list:
+        list_models()
+        sys.exit(0)
+
+    split(args)
 
 if __name__ == '__main__':
     main()

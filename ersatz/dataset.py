@@ -12,7 +12,7 @@ if __package__ is None and __name__ == '__main__':
     __package__ = 'ersatz'
 
 from .subword import Vocabulary, SentencePiece
-from .determiner import MultilingualPunctuation, PunctuationSpace, Split
+from .candidates import MultilingualPunctuation, PunctuationSpace, Split
 
 logger = logging.getLogger('ersatz')
 

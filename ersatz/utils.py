@@ -25,23 +25,31 @@ ERSATZ_DIR = os.environ.get("ERSATZ", os.path.join(USERHOME, ".ersatz"))
 MODELS = {
     "en" : {
         "source" : "https://github.com/rewicks/ersatz-models/raw/main/monolingual/en/01.Jun.21.en.gz",
+        "info" : "An English monolingual model trained on English News Commentary",
         "description" : "monolingual/en",
         "destination": "monolingual/en/01.Jun.21.en",
         "date": "01 June 2021"
     },
-    "default_multilingual" : {
+    "default-multilingual" : {
         "source" : "https://github.com/rewicks/ersatz-models/raw/main/multilingual/wmtlangs/01.Jun.21.multilingual.gz",
-        "description" : "multilingual/wmtlangs/",
+        "info": "A multilingual model, including languages commonly associated with WMT tasks and datasets",
+        "description" : "multilingual/wmtlangs",
         "destination": "multilingual/wmtlangs/01.Jun.21.multilingual",
         "date": "01 June 2021"
     }
 }
 
-def get_model_path(model_name='default_multilingual'):
+def list_models():
+    for model_name in MODELS:
+        model = MODELS[model_name]
+        print(f'\t- {model_name} [{model["description"]}] : {model["info"]}')
+    pass
+
+def get_model_path(model_name='default-multilingual'):
 
     if model_name not in MODELS:
-        logger.error(f"Could not find model by name of \"{model_name}\". Using \"default_multilingual\" instead")
-        model_name = 'default_multilingual'
+        logger.error(f"Could not find model by name of \"{model_name}\". Using \"default-multilingual\" instead")
+        model_name = 'default-multilingual'
 
     model = MODELS[model_name]
 
@@ -49,7 +57,6 @@ def get_model_path(model_name='default_multilingual'):
     logger.info(f"Model description: \"{model['description']}\"")
     logger.info(f"Release Date: \"{model['date']}\"")
 
-    model_source = model['source']
     model_file = os.path.join(ERSATZ_DIR, model['destination'])
     if os.path.exists(model_file):
         logger.info(f"USING \"{model_name}\" model found at {model_file}")

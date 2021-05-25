@@ -8,7 +8,7 @@ if __package__ is None and __name__ == '__main__':
     sys.path.insert(0, str(parent))
     __package__ = 'ersatz'
 
-from .determiner import MultilingualPunctuation, PunctuationSpace, Split
+from .candidates import MultilingualPunctuation, PunctuationSpace, Split
 
 def levenshtein(gold_sequence, pred_sequence):
     size_x = len(gold_sequence) + 1

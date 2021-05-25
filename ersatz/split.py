@@ -164,12 +164,13 @@ class EvalModel():
                 counter += 1
             output = self.tokenizer.merge(output, technique='utility').strip().split('\n')
             yield '\n'.join([o.strip() for o in output])
-        yield ''
+        yield None
 
     def split(self, input_file, output_file, batch_size, det=None):
         for line in input_file:
             for batch_output in self.parallel_evaluation(line, batch_size, det=det):
-                print(batch_output.strip(), file=output_file)
+                if batch_output is not None:
+                    print(batch_output.strip(), file=output_file)
 
     def split_delimiter(self, input_file, output_file, batch_size, delimiter, text_ids, det=None):
         for line in input_file:

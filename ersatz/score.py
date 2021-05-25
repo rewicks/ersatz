@@ -330,10 +330,10 @@ def score(target_file, pred_file, det, rtl=False, range=10):
                     pred_gen = rem_pred + pred_gen[index+range:]
                     target_gen = rem_gold + target_gen[index+range:]
                 except:
-                    rem_gold, rem_pred, edit_dist = align(target_gen[index:index+100], pred_gen[index:index+100])
-                    running_index += 100-len(rem_gold)
-                    pred_gen = rem_pred + pred_gen[index+100:]
-                    target_gen = rem_gold + target_gen[index+100:]
+                    rem_gold, rem_pred, edit_dist = align(target_gen[index:index+200], pred_gen[index:index+200])
+                    running_index += 200-len(rem_gold)
+                    pred_gen = rem_pred + pred_gen[index+200:]
+                    target_gen = rem_gold + target_gen[index+200:]
                 #print(f'remaining\n{rem_pred}\n{rem_gold}\n\n')
                 index = 0
                 #running_index += range-len(rem_pred)

@@ -11,13 +11,13 @@ import json
 import sys
 import pathlib
 
-from .subword import SentencePiece
 
 if __package__ is None and __name__ == '__main__':
     parent = pathlib.Path(__file__).absolute().parents[1]
     sys.path.insert(0, str(parent))
     __package__ = 'ersatz'
 
+from .subword import SentencePiece
 from .determiner import PunctuationSpace, Split, MultilingualPunctuation
 from .model import ErsatzTransformer
 from .dataset import ErsatzDataset
@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--train_path', type=str)
     parser.add_argument('--valid_path', type=str)
     parser.add_argument('--sentencepiece_path')
-    parser.add_argument('--determiner_type', default='en', choices=["en", "multilingual", "all"])
+    parser.add_argument('--determiner_type', default='multilingual', choices=["en", "multilingual", "all"])
     parser.add_argument('--left_size', type=int, default=15)
     parser.add_argument('--right_size', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=256)
@@ -81,8 +81,12 @@ def main():
     for epoch in range(args.max_epochs):
         status['epoch'] = epoch
         trainer.model.train()
-        res, status, best_model = trainer.run_epoch(epoch, args.batch_size, args.log_interval, args.validation_interval,
-                                                    results, best_model,
+        res, status, best_model = trainer.run_epoch(epoch, args.batch_size, 
+                                                    log_interval=args.log_interval, 
+                                                    validation_interval=args.validation_interval,
+                                                    status=status,
+                                                    results=results, 
+                                                    best_model=best_model,
                                                     min_epochs=args.min_epochs,
                                                     validation_threshold=args.early_stopping,
                                                     use_factors=args.source_factors,
@@ -108,6 +112,7 @@ class Results():
         self.correct_mos = 0
         self.num_pred = 0
         self.update_num = 0
+        self.batches = 0
         self.last_update = time
         self.start = time
         self.validations = 0
@@ -125,6 +130,7 @@ class Results():
         self.correct_eos += (predictions==0).sum().item()
    
         self.correct_mos = self.num_pred - (self.num_obs_eos + self.num_pred_eos - self.correct_eos)            
+        self.batches += 1
 
     def get_results(self, lr):
         retVal = {}
@@ -319,7 +325,12 @@ class ErsatzTrainer():
         self.model.train()
         return retVal
 
-    def run_epoch(self, epoch, batch_size, log_interval, validation_interval, results, best_model,
+    def run_epoch(self, epoch, batch_size, 
+                  log_interval=1000, 
+                  validation_interval=250000, 
+                  results=None, 
+                  status=None,
+                  best_model=None,
                   min_epochs = 10,
                   validation_threshold=10,
                   use_factors=False,
@@ -348,7 +359,7 @@ class ErsatzTrainer():
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
             self.optimizer.step()
         
-            if i % log_interval == 1:
+            if results.batches % log_interval == 1:
                 status = results.get_results(self.scheduler.get_last_lr()[0])
                 logging.info(json.dumps(status))
                 for key in status:
@@ -357,7 +368,7 @@ class ErsatzTrainer():
                         self.writer.add_scalar(f'{key}/training', status[key], time_mark)
                 results.reset(time.time())
 
-            if i % validation_interval == 1:
+            if results.batches % validation_interval == 1:
                 stats = self.validate(batch_size, determiner, use_factors=use_factors)
                 stats['type'] = 'VALIDATION'
                 results.validated()

@@ -28,6 +28,7 @@ global {
 task train_vocab : ersatz
     :: vocab_size=@
     :: languages=@
+    :: train_dir=@
     :: pyenv=@ :: .submitter=$grid :: devices=@
     :: devices_per_task=0
     :: .resource_flags=$cpuResourceFlags :: .action_flags=$cpuActionFlags
@@ -36,7 +37,7 @@ task train_vocab : ersatz
         mkdir -p out
         TRAIN_DATA_PATH=""
         for lang in $languages; do
-            TRAIN_DATA_PATH=/exp/rwicks/ersatz/data/concat/train/$lang","$TRAIN_DATA_PATH
+            TRAIN_DATA_PATH=$train_dir$lang","$TRAIN_DATA_PATH
         done;
         TRAIN_DATA_PATH=${TRAIN_DATA_PATH%?}
         spm_train_py --input $TRAIN_DATA_PATH \
@@ -52,6 +53,7 @@ task train_vocab : ersatz
 task make_train_data : ersatz
     < vocab_path=$model@train_vocab
     :: left_size=@ right_size=@ languages=@
+    :: train_dir=@
     :: pyenv=@ :: .submitter=$grid :: devices=@
     :: devices_per_task=0
     :: .resource_flags=$cpuResourceFlags :: .action_flags=$cpuActionFlags
@@ -60,17 +62,18 @@ task make_train_data : ersatz
     if [[ $languages =~ \ |\' ]]; then
         TRAIN_DATA_PATH=""
         for lang in $languages; do
-            TRAIN_DATA_PATH="${TRAIN_DATA_PATH} /exp/rwicks/ersatz/data/concat/train/$lang"
+            TRAIN_DATA_PATH="${TRAIN_DATA_PATH} $train_dir$lang"
         done
     else
-        TRAIN_DATA_PATH="/exp/rwicks/ersatz/data/concat/train/$languages"
+        TRAIN_DATA_PATH=$train_dir$languages
     fi
-    PYTHONPATH=. python $ersatz/dataset.py \
+    #PYTHONPATH=. python $ersatz/dataset.py \
+    ersatz_preprocess \
         --sentencepiece_path $vocab_path \
         --left-size $left_size \
         --right-size $right_size \
         --output_path out_og \
-        $TRAIN_DATA_PATH
+        --input_paths $TRAIN_DATA_PATH
 
     shuf --random-source=<(get_seeded_random 14) out_og > out_shuffle
 }
@@ -86,17 +89,18 @@ task make_valid_data : ersatz
     if [[ $languages =~ \ |\' ]]; then
         VALID_DATA_PATH=""
         for lang in $languages; do
-            VALID_DATA_PATH="${VALID_DATA_PATH} /exp/rwicks/ersatz/data/concat/dev/$lang"
+            VALID_DATA_PATH="${VALID_DATA_PATH} /exp/rwicks/ersatz/data/balanced/dev/$lang"
         done
     else
-        VALID_DATA_PATH="/exp/rwicks/ersatz/data/concat/dev/$languages"
+        VALID_DATA_PATH="/exp/rwicks/ersatz/data/balanced/dev/$languages"
     fi
-    PYTHONPATH=. python $ersatz/dataset.py \
+    #PYTHONPATH=. python $ersatz/dataset.py \
+    ersatz_preprocess \
         --sentencepiece_path $vocab_path \
         --left-size $left_size \
         --right-size $right_size \
         --output_path out_og \
-        $VALID_DATA_PATH
+        --input_paths $VALID_DATA_PATH
     shuf --random-source=<(get_seeded_random 14) out_og > out_shuffle
 }
 

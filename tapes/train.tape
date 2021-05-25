@@ -38,7 +38,8 @@ task train : ersatz
             FACT_VALUE=""
         fi
 
-        PYTHONPATH=$ersatz python $ersatz/trainer.py \
+        #PYTHONPATH=$ersatz python $ersatz/trainer.py \
+        ersatz_train \
         --sentencepiece_path=$vocab_path \
         --left_size=$left_size \
         --right_size=$right_size \
@@ -49,6 +50,7 @@ task train : ersatz
         --min-epochs=$min_epochs \
         --max-epochs=$max_epochs \
         --lr=$lr \
+        --batch_size=$batch_size \
         --dropout=$dropout \
         --embed_size=$embed_size \
         --factor_embed_size=$factor_embed_size $FACT_VALUE \
@@ -58,7 +60,7 @@ task train : ersatz
         --eos_weight=$eos_weight \
         --early_stopping=$early_stopping \
         --tb_dir=$LOGDIR \
-        $train_path \
-        $valid_path
+        --train_path=$train_path \
+        --valid_path=$valid_path
 }
 

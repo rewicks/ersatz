@@ -61,23 +61,6 @@ class EvalModel():
         if type(self.model) is torch.nn.DataParallel:
             self.model = self.model.module
 
-        # if torch.cuda.is_available() and not cpu:
-        #     logger.info('Using GPU for segmentation (disable with --cpu)')
-        #     self.model = load_model(model_path)
-        #     if type(self.model) is torch.nn.DataParallel:
-        #         self.model = self.model.module
-        #     self.device = torch.device("cuda")
-        #     self.model = self.model.to(self.device)
-        #     if torch.cuda.device_count() > 1:
-        #         self.model = torch.nn.DataParallel(self.model)
-        # else:
-        #     logger.info('Using CPU for segmentation')
-        #     self.model = load_model(model_path)
-        #     if type(self.model) is torch.nn.DataParallel:
-        #         self.model = self.model.module
-        #     self.device = torch.device('cpu')
-        #     self.model.to(self.device)
-
         self.tokenizer = self.model.tokenizer
         self.left_context_size = self.model.left_context_size
         self.right_context_size = self.model.right_context_size
@@ -89,7 +72,7 @@ class EvalModel():
         if len(left_contexts) > 0:
             lines = []
             indices = []
-            index = 0
+            index = 1
             for left, right in zip(left_contexts, right_contexts):
                 if candidates(detokenize(' '.join(left)), detokenize(' '.join(right))):
                     lines.append((left, source_factors.compute(left),

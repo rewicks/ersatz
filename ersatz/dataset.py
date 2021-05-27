@@ -78,33 +78,21 @@ def split_test_file(document, tokenizer, left_context_size, right_context_size):
     document = tokenizer.encode(document, out_type=str)
     left_contexts = []
     right_contexts = []
+    left_temp = ["<pad>" for x in range(left_context_size - 1)] + [document[0]]
+    right_temp = [x for x in document[1:(right_context_size) + 1]]
+    temp_index = right_context_size + 1
     for index, word in enumerate(document, 0):
-        left_temp = []
-        right_temp = []
-        # Get the left context
-        temp_index = index - 1
-        while (len(left_temp) < left_context_size):
-            if temp_index >= 0:
-                left_temp.append(document[temp_index])
-            else:
-                # padding for the beginning of the document
-                left_temp.append('<pad>')
-            temp_index -= 1
-
-        left_temp.reverse()
         left_contexts.append(' '.join(left_temp))
 
-        # Get the right context
-        temp_index = index
-        while (len(right_temp) < right_context_size):
-            if temp_index < len(document):
-                right_temp.append(document[temp_index])
-            else:
-                # padding for the end of the document
-                right_temp.append('<pad>')
-            temp_index += 1
-
         right_contexts.append(' '.join(right_temp))
+
+        left_temp.pop(0)
+        left_temp.append(right_temp.pop(0))
+        if temp_index < len(document):
+            right_temp.append(document[temp_index])
+            temp_index += 1
+        else:
+            right_temp.append("<pad>")
     return left_contexts, right_contexts
 
 

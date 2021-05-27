@@ -50,7 +50,7 @@ def parse_args():
     parser.add_argument('--validation_interval', type=int, default=25000)
     parser.add_argument('--early_stopping', type=int, default=25)
     parser.add_argument('--cpu', action='store_true')
-    parser.add_argument('--eos_weight', type=float, default=9.0)
+    parser.add_argument('--eos_weight', type=float, default=1.0)
     parser.add_argument('--seed', type=int, default=14)
     parser.add_argument('--tb_dir', type=str, default=None)
     args = parser.parse_args()

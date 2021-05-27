@@ -16,56 +16,6 @@ from .candidates import MultilingualPunctuation, PunctuationSpace, Split
 
 logger = logging.getLogger('ersatz')
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="ERSATZ PREPROCESSOR: converts raw text (~one sentence per line) to expected input for ersatz training.\n"
-        "      Example: ersatz_preprocess --sp en.8000.model --output_path en.train file1.txt file2.txt file3.txt",
-        formatter_class=argparse.RawTextHelpFormatter
-    )
-
-    parser.add_argument('--sentencepiece_path', '--sp', type=str, default=None,
-                        help="Path to sentencepiece .model file to be used as tokenizer")
-    parser.add_argument('--output_path', type=str, default="train.data",
-                        help="File path where output will be written")
-    parser.add_argument('--left-size', type=int, default=5,
-                        help="Number of tokens of left context to use for predictions")
-    parser.add_argument('--right-size', type=int, default=5,
-                        help="Number of tokens of right context to use for predictions")
-    parser.add_argument('--determiner_type', default='multilingual', choices=["en", "multilingual", "all"],
-                        help="Type of contexts to include. Defaults to 'multilingual'\n"
-                            "   * en: [EOS punctuation][any_punctuation]*[space]\n"
-                            "   * multilingual: [EOS punctuation][!number]\n"
-                            "   * all: all possible contexts")
-    parser.add_argument('--input_paths', nargs='*', default=None,
-                        help="Paths to raw text input files")
-    args = parser.parse_args()
-    return args
-
-def main():
-    args = parse_args()
-
-    if args.sentencepiece_path is not None:
-        tokenizer = SentencePiece(model_path=args.sentencepiece_path)
-    else:
-        logger.error("ERROR: No --sentencepiece_path was given. Training one as part of preprocessing is not currently supported.")
-        sys.exit(-1)
-
-    if args.determiner_type == "en":
-        determiner = PunctuationSpace()
-    elif args.determiner_type == "multilingual":
-        determiner = MultilingualPunctuation()
-    else:
-        determiner = Split()
-
-    split_train_file(args.input_paths, tokenizer,
-                     output_path=args.output_path,
-                     left_context_size=args.left_size,
-                     right_context_size=args.right_size,
-                     determiner=determiner)
-
-if __name__ == '__main__':
-    main()
-
 #######################################################################################################
 
 # iterates over a file and yields one doc at a time with the appropriately
@@ -99,40 +49,29 @@ def split_train_file(file_paths,
 
     random.seed(14)
 
+    # import pdb; pdb.set_trace()
     with open(output_path, 'w') as f:
         for file_path in file_paths:
             for doc in document_generator(file_path, tokenizer=tokenizer):
+                left_temp = ["<pad>" for x in range(left_context_size-1)] + [doc[0]]
+                right_temp = [x for x in doc[1:(2*right_context_size)+1] if x not in ["<eos>", "<mos>"]]
+                temp_index = 2*right_context_size+2
                 for index, word in enumerate(doc):
-                    if index < len(doc)-1 and '\u2581' in doc[index+1]:
-                        left_temp = []
-                        right_temp = []
-
-                        # Get the left context
-                        temp_index = index-1
-                        while (len(left_temp) < left_context_size):
-                            if temp_index >= 0:
-                                if doc[temp_index] not in ['<eos>', '<mos>']:
-                                    left_temp.append(doc[temp_index])
-                            else:
-                                left_temp.append('<pad>')
-                            temp_index -= 1
-                        left_temp.reverse()
+                    if word in ['<eos>', '<mos>']:
 
                         label = word
 
-                        temp_index = index + 1
-                        while (len(right_temp) < right_context_size):
-                            if temp_index < len(doc):
-                                if doc[temp_index] not in ['<eos>', '<mos>']:
-                                    right_temp.append(doc[temp_index])
-                            else:
-                                right_temp.append('<pad>')
-                            temp_index += 1
-
-                        if determiner(' '.join(left_temp), ' '.join(right_temp)):
+                        if determiner(''.join(left_temp).replace('\u2581', ' ').replace('<pad>', ''),
+                                      ''.join(right_temp).replace('\u2581', ' ').replace('<pad>', '')):
                             f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
 
-
+                        left_temp.pop(0)
+                        left_temp.append(right_temp.pop(0))
+                        if temp_index < len(doc):
+                            right_temp.append(doc[temp_index])
+                            temp_index += 2
+                        else:
+                            right_temp.append("<pad>")
 # split test files
 # the difference between this and the previous is there are no labels in data
 def split_test_file(document, tokenizer, left_context_size, right_context_size):
@@ -285,3 +224,56 @@ class ErsatzDataset():
             if len(data) > 0:
                 yield context, factors, label, context_strings
                 batch_idx += 1
+
+##############################################################################
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="ERSATZ PREPROCESSOR: converts raw text (~one sentence per line) to expected input for ersatz training.\n"
+        "      Example: ersatz_preprocess --sp en.8000.model --output_path en.train file1.txt file2.txt file3.txt",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+
+    parser.add_argument('--sentencepiece_path', '--sp', type=str, default=None,
+                        help="Path to sentencepiece .model file to be used as tokenizer")
+    parser.add_argument('--output_path', type=str, default="train.data",
+                        help="File path where output will be written")
+    parser.add_argument('--left-size', type=int, default=5,
+                        help="Number of tokens of left context to use for predictions")
+    parser.add_argument('--right-size', type=int, default=5,
+                        help="Number of tokens of right context to use for predictions")
+    parser.add_argument('--determiner_type', default='multilingual', choices=["en", "multilingual", "all"],
+                        help="Type of contexts to include. Defaults to 'multilingual'\n"
+                            "   * en: [EOS punctuation][any_punctuation]*[space]\n"
+                            "   * multilingual: [EOS punctuation][!number]\n"
+                            "   * all: all possible contexts")
+    parser.add_argument('--input_paths', nargs='*', default=None,
+                        help="Paths to raw text input files")
+    args = parser.parse_args()
+    return args
+
+def main():
+    args = parse_args()
+
+    if args.sentencepiece_path is not None:
+        tokenizer = SentencePiece(model_path=args.sentencepiece_path)
+    else:
+        logger.error("ERROR: No --sentencepiece_path was given. Training one as part of preprocessing is not currently supported.")
+        sys.exit(-1)
+
+    if args.determiner_type == "en":
+        determiner = PunctuationSpace()
+    elif args.determiner_type == "multilingual":
+        determiner = MultilingualPunctuation()
+    else:
+        determiner = Split()
+
+    split_train_file(args.input_paths, tokenizer,
+                     output_path=args.output_path,
+                     left_context_size=args.left_size,
+                     right_context_size=args.right_size,
+                     determiner=determiner)
+
+
+if __name__ == '__main__':
+    main()

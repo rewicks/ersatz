@@ -82,20 +82,20 @@ class Lists(Split):
             return True
 
 class MultilingualPunctuation(Split):
-    #list_det = Lists()
     def __call__(self, left_context, right_context):
-        left_context = left_context.strip()
-        if right_context[0] not in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
-            for i, ch in enumerate(left_context):
-                if ch in ending_punc:
-                    for j, next_ch in enumerate(left_context[i:], i):
-                        if next_ch not in ending_punc and next_ch not in closing_punc:
-                            j = -1
-                            break
-                    if j != -1:
-                        return True
-        #if self.list_det(left_context, right_context):
-        #    return True
+        try:
+            left_context = left_context.split(' ')[-1]
+            if right_context[0] not in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+                for i, ch in enumerate(left_context):
+                    if ch in ending_punc:
+                        for j, next_ch in enumerate(left_context[i:], i):
+                            if next_ch not in ending_punc and next_ch not in closing_punc:
+                                j = -1
+                                break
+                        if j != -1:
+                            return True
+        except:
+            return False
         return False
 
 class IndividualPunctuation(Split):

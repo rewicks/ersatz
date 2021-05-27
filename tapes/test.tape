@@ -173,3 +173,21 @@ task score_baseline : ersatz
         echo -e $lang"\t"$FSCORE"\t"$RECALL"\t"$PRECISION"\t"$ACCURACY
     done;
     }
+
+task speed_test_cpu : ersatz
+    < log=$out@train
+    > out
+    :: linear_nlayers=@
+    :: transformer_nlayers=@
+    :: pyenv=@ :: .submitter=$grid :: devices=@
+    :: devices_per_task=0
+    :: .resource_flags=$cpuResourceFlags :: .action_flags=$cpuActionFlags
+    {
+    LOG_PATH=$(echo $log | rev | cut -d'/' -f2- | rev)/job.out
+    PARAMS=$(grep "Training with" $LOG_PATH | rev | cut -d' ' -f1 | rev)
+    LINEAR=$(($linear_nlayers-1))
+    MODEL_NAME="Transformer.$transformer_nlayers.Linear.$LINEAR"
+    FSCORE=$(grep "EARLY STOPPING" $LOG_PATH | tail -1 | cut -d' ' -f3- | jq .inference_f1)
+    TIME=`(time (cat /home/hltcoe/rwicks/speed-tests/wiki.1M.en | ersatz --model $log/checkpoint.best --cpu > split)) 2>&1 | grep real | cut -f2`
+    echo -e $MODEL_NAME"\t"$PARAMS"\t"$FSCORE"\t"$TIME > time    
+    }

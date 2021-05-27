@@ -124,6 +124,46 @@ plan do_ml {
                 (LearningRate: 0.0001)
 }
 
+plan do_ml_context_grid {
+    reach train via (Scenario: multilingual) *
+                (Vocabulary: 12000) *
+                (LeftSize: 1 2 3 4 5 6) *
+                (RightSize: 1 2 3 4 5 6) *
+                (EmbedSize: 128) *
+                (FactSize: 0) *
+                (TransformerLayers: 2) *
+                (LinearLayers: 1) *
+                (ActivationType: tanh) *
+                (EOSWeight: 20.0) *
+                (LearningRate: 0.0001) 
+}
+
+
+plan do_time {
+    reach speed_test_cpu via (Scenario: multilingual) *
+                (Vocabulary: 12000) *
+                (LeftSize: 6) *
+                (RightSize: 4) *
+                (EmbedSize: 128) *
+                (FactSize: 0) *
+                (TransformerLayers: 1 2) *
+                (LinearLayers: 1) *
+                (ActivationType: tanh) *
+                (EOSWeight: 20.0) *
+                (LearningRate: 0.0001)
+    reach speed_test_cpu via (Scenario: multilingual) *
+                (Vocabulary: 12000) *
+                (LeftSize: 6) *
+                (RightSize: 4) *
+                (EmbedSize: 128) *
+                (FactSize: 0) *
+                (TransformerLayers: 0) *
+                (LinearLayers: 2 3) *
+                (ActivationType: tanh) *
+                (EOSWeight: 20.0) *
+                (LearningRate: 0.0001)
+}
+
 plan do_score {
     reach score_dev via (Scenario: multilingual) *
                 (Vocabulary: 12000) *

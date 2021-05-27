@@ -8,8 +8,8 @@ global {
 	log_interval=100
 	validation_interval=500
     early_stopping=15
-	left_size=(LeftSize: 1 6 8)
-	right_size=(RightSize: 1 4 6)
+	left_size=(LeftSize: 1 2 3 4 5 6)
+	right_size=(RightSize: 1 2 3 4 5 6)
 	embed_size=(EmbedSize: 16 32 64 128 256)
     factor_embed_size=(FactSize: 0 8 16 32)
 	transformer_nlayers=(TransformerLayers: 0 1 2)

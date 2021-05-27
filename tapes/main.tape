@@ -69,34 +69,34 @@ plan do_monolinguals {
 		(Vocabulary: 500 1000) *
         (LeftSize: 6 8) *
 		(RightSize: 4 6) *
-		(EmbedSize: 64 128 256) *
+		(EmbedSize: 128) *
         (FactSize: 0) *
 		(TransformerLayers: 2) *
         (LinearLayers: 1) *
 		(ActivationType: tanh) *
-        (EOSWeight: 1.0 10.0 20.0)
+        (EOSWeight: 1.0 20.0)
     reach score_dev via (Scenario: ja) *
         (LearningRate: 0.0001) *
         (Vocabulary: 4000 8000) *
         (LeftSize: 6 8) *
         (RightSize: 4 6) *
-        (EmbedSize: 64 128 256) *
+        (EmbedSize: 128) *
         (FactSize: 0) *
         (TransformerLayers: 2) *
         (LinearLayers: 1) *
         (ActivationType: tanh) *
-        (EOSWeight: 1.0 10.0 20.0)
+        (EOSWeight: 1.0 20.0)
     reach score_dev via (Scenario: zh) *
         (LearningRate: 0.0001) *
         (Vocabulary: 8000) *
         (LeftSize: 6 8) *
         (RightSize: 4 6) *
-        (EmbedSize: 64 128 256) *
+        (EmbedSize: 128) *
         (FactSize: 0) *
         (TransformerLayers: 2) *
         (LinearLayers: 1) *
         (ActivationType: tanh) *
-        (EOSWeight: 1.0 10.0 20.0)
+        (EOSWeight: 1.0 20.0)
 }
 
 plan do_ml {

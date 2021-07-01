@@ -20,14 +20,16 @@ from .candidates import PunctuationSpace, MultilingualPunctuation, Split
 from .subword import SentencePiece
 
 import logging
-# TODO: change the loglevel here if -q is passed
+
+
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     level=os.environ.get("LOGLEVEL", "INFO").upper(),
-    stream=sys.stdout,
+    stream=sys.stderr,
 )
 logger = logging.getLogger("ersatz")
+
 # default args for loading models
 # should write something to merge default args with loaded args (overwrite when applicable)
 class DefaultArgs():

@@ -53,46 +53,48 @@ def split_train_file(file_paths,
     with open(output_path, 'w') as f:
         for file_path in file_paths:
             for doc in document_generator(file_path, tokenizer=tokenizer):
-                left_temp = ["<pad>" for x in range(left_context_size-1)] + [doc[0]]
-                right_temp = [x for x in doc[1:(2*right_context_size)+1] if x not in ["<eos>", "<mos>"]]
-                temp_index = 2*right_context_size+2
-                for index, word in enumerate(doc):
-                    if word in ['<eos>', '<mos>']:
+                if len(doc) > 0:
+                    left_temp = ["<pad>" for x in range(left_context_size-1)] + [doc[0]]
+                    right_temp = [x for x in doc[1:(2*right_context_size)+1] if x not in ["<eos>", "<mos>"]]
+                    temp_index = 2*right_context_size+2
+                    for index, word in enumerate(doc):
+                        if word in ['<eos>', '<mos>']:
 
-                        label = word
+                            label = word
 
-                        if determiner(''.join(left_temp).replace('\u2581', ' ').replace('<pad>', ''),
-                                      ''.join(right_temp).replace('\u2581', ' ').replace('<pad>', '')):
-                            f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
+                            if determiner(''.join(left_temp).replace('\u2581', ' ').replace('<pad>', ''),
+                                          ''.join(right_temp).replace('\u2581', ' ').replace('<pad>', '')):
+                                f.write(' '.join(left_temp) + ' ||| ' + ' '.join(right_temp) + ' ||| ' + label + '\n')
 
-                        left_temp.pop(0)
-                        left_temp.append(right_temp.pop(0))
-                        if temp_index < len(doc):
-                            right_temp.append(doc[temp_index])
-                            temp_index += 2
-                        else:
-                            right_temp.append("<pad>")
+                            left_temp.pop(0)
+                            left_temp.append(right_temp.pop(0))
+                            if temp_index < len(doc):
+                                right_temp.append(doc[temp_index])
+                                temp_index += 2
+                            else:
+                                right_temp.append("<pad>")
 # split test files
 # the difference between this and the previous is there are no labels in data
 def split_test_file(document, tokenizer, left_context_size, right_context_size):
     document = tokenizer.encode(document, out_type=str)
     left_contexts = []
     right_contexts = []
-    left_temp = ["<pad>" for x in range(left_context_size - 1)] + [document[0]]
-    right_temp = [x for x in document[1:(right_context_size) + 1]]
-    temp_index = right_context_size + 1
-    for index, word in enumerate(document, 0):
-        left_contexts.append(' '.join(left_temp))
+    if len(document) > 0:
+        left_temp = ["<pad>" for x in range(left_context_size - 1)] + [document[0]]
+        right_temp = [x for x in document[1:(right_context_size) + 1]]
+        temp_index = right_context_size + 1
+        for index, word in enumerate(document, 0):
+            left_contexts.append(' '.join(left_temp))
 
-        right_contexts.append(' '.join(right_temp))
+            right_contexts.append(' '.join(right_temp))
 
-        left_temp.pop(0)
-        left_temp.append(right_temp.pop(0))
-        if temp_index < len(document):
-            right_temp.append(document[temp_index])
-            temp_index += 1
-        else:
-            right_temp.append("<pad>")
+            left_temp.pop(0)
+            left_temp.append(right_temp.pop(0))
+            if temp_index < len(document):
+                right_temp.append(document[temp_index])
+                temp_index += 1
+            else:
+                right_temp.append("<pad>")
     return left_contexts, right_contexts
 
 

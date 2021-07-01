@@ -41,7 +41,7 @@ task split : ersatz
 	do
         FILE_PATH="/exp/rwicks/ersatz/data/balanced/test/$lang"
 		OUTPATH=$(echo $FILE_PATH | rev | cut -d'/' -f1 | rev)
-		cat $FILE_PATH | ~mpost/bin/strip_punc_rachel.py | tr '\n' ' ' | ersatz --model_path $model_path/checkpoint.best --determiner_type=multilingual > out/$OUTPATH
+		cat $FILE_PATH | ~mpost/bin/strip_punc_rachel.py | tr '\n' ' ' | ersatz --model $model_path/checkpoint.best --candidates=multilingual > out/$OUTPATH
 	done;
 	}
 
@@ -59,7 +59,7 @@ task split_dev : ersatz
         FILE_PATH="/exp/rwicks/ersatz/data/balanced/dev/$lang"
 		OUTPATH=$(echo $FILE_PATH | rev | cut -d'/' -f1 | rev)
 		# cat $FILE_PATH | ~mpost/bin/strip_punc_rachel.py | tr '\n' ' ' | PYTHONPATH=$ersatz python $ersatz/split.py $model_path/checkpoint.best --determiner_type=multilingual > out/$OUTPATH
-		cat $FILE_PATH | ~mpost/bin/strip_punc_rachel.py | tr '\n' ' ' | ersatz --model_path $model_path/checkpoint.best --determiner_type=multilingual > out/$OUTPATH
+		cat $FILE_PATH | ~mpost/bin/strip_punc_rachel.py | tr '\n' ' ' | ersatz --model $model_path/checkpoint.best --candidates=multilingual > out/$OUTPATH
 	done;
 	}
 

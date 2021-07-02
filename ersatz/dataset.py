@@ -82,6 +82,8 @@ def split_test_file(document, tokenizer, left_context_size, right_context_size):
     if len(document) > 0:
         left_temp = ["<pad>" for x in range(left_context_size - 1)] + [document[0]]
         right_temp = [x for x in document[1:(right_context_size) + 1]]
+        while (len(right_temp) < right_context_size):
+            right_temp.append("<pad>")
         temp_index = right_context_size + 1
         for index, word in enumerate(document, 0):
             left_contexts.append(' '.join(left_temp))

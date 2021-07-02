@@ -148,3 +148,6 @@ python score.py [gold_standard_file_path] [file_to_score]
 
 (There are legacy arguments, but they're not used)
 
+# Changelog
+
+1.0.0 original release

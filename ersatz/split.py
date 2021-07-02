@@ -239,6 +239,8 @@ def parse_args():
                         help="Downloads model selected via '--model'")
     options.add_argument('--list', '-l', action='store_true',
                         help="Lists available models.")
+    options.add_argument('--quiet', '-q', action='store_true',
+                        help="Disables logging.")
 
     args = parser.parse_args()
 
@@ -308,6 +310,9 @@ def main():
     if args.list:
         list_models()
         sys.exit(0)
+
+    if args.quiet:
+        logger.setLevel(logging.ERROR)
 
     split(args)
 

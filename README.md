@@ -2,8 +2,8 @@ _Ersatz_ is a simple, language-agnostic toolkit for both training sentence segme
 pretrained, high-performing models for sentence segmentation in a multilingual setting.
 
 For more information, please see:
- - [Rachel Wicks and Matt Post (2021) :
-   A unified approach to sentence segmentation of punctuated text in many languages]() In _Proceedings of ACL_.
+ - [Rachel Wicks and Matt Post (2021):
+   A unified approach to sentence segmentation of punctuated text in many languages](https://aclanthology.org/2021.acl-long.309/) In _Proceedings of ACL_.
 # QUICK START
 
 #### Install
